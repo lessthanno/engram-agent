@@ -1,70 +1,58 @@
-<p align="center">
-  <h1 align="center">Engram</h1>
-  <p align="center">
-    <strong>Self-distillation for knowledge workers.<br>Your AI tools remember who you are — because you told them, every night, automatically.</strong>
-  </p>
-  <p align="center">
-    <a href="#the-problem">The Problem</a> &bull;
-    <a href="#quick-start">Quick Start</a> &bull;
-    <a href="#how-it-works">How It Works</a> &bull;
-    <a href="./README.zh-CN.md">中文文档</a> &bull;
-    <a href="https://github.com/lessthanno/engram-agent/issues">Issues</a>
-  </p>
-</p>
+<div align="center">
+
+# Engram
+
+**Your AI tools forget everything every night. Engram fixes that.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
+[![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://apple.com/macos)
+[![Zero deps](https://img.shields.io/badge/dependencies-zero-brightgreen.svg)](#requirements)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-full_support-orange.svg)](https://claude.ai/code)
+
+*Self-distillation for knowledge workers. Runs automatically every night. Nothing to click.*
+
+[Quick Start](#quick-start) · [How It Works](#how-it-works) · [Skills](#skills----extend-engram) · [Privacy](#privacy----the-non-negotiable) · [中文文档](README.zh-CN.md)
+
+</div>
 
 ---
 
-## The Problem
+## Before and After
 
-Imagine hiring a brilliant assistant who gets amnesia every night.
+**Without Engram — every single morning:**
 
-Every morning, you walk in and they ask: *"Hi, who are you? What are we working on?"* You explain everything again. They do great work. Then they go home, forget it all, and the cycle repeats.
-
-**That's how AI tools work today.** Claude Code, Cursor, Codex, ChatGPT -- they're incredibly capable, but every session starts from zero. No memory of yesterday's decisions. No awareness of your habits. No continuity.
-
-**Engram gives them a memory -- of you.**
-
-It runs quietly in the background, observing what you work on each day -- code, writing, research, meetings, anything. At night, it distills your raw activity into structured insights: what you did, how you work, where you get stuck, and what's still open. The next morning, your AI tools already know you.
-
-This isn't a tool for programmers. It's **self-distillation for anyone who works with AI.**
-
-No cloud. No setup. No maintenance. Just AI that gets smarter about you, every day.
-
----
-
-## What Changes
-
-**Without Engram -- every morning:**
 ```
 You:    Help me finish the Q2 report
 Claude: Sure! What's the report about? What format do you want?
-        (asks 10 questions you answered last week)
+        What have you done so far? Who's the audience?
 ```
 
-**With Engram -- every morning:**
+**With Engram:**
+
 ```
 You:    Help me finish the Q2 report
-Claude: You started drafting the Q2 report last Thursday. Revenue section
-        is done, but you left the churn analysis incomplete. You noted
-        the data source was unreliable -- want me to pull from the
-        updated dashboard instead?
+Claude: You started this last Thursday. Revenue section is done.
+        The churn analysis is incomplete — you noted the data source
+        was unreliable. Want me to pull from the updated dashboard?
 ```
 
-**It notices things you don't:**
-```
-[From daily analysis]
+**It notices what you don't:**
 
-You context-switched between 8 projects yesterday.
-On days with <3 switches, your output is 2.4x higher.
-Suggestion: Block 2 focused hours on your top priority before opening other projects.
+```
+[Weekly pattern detected]
+
+You context-switched between 8 projects on Tuesday.
+On days with ≤3 switches, your output is 2.4x higher.
+Your last 3 high-output days all started with 2h of focused work.
 ```
 
 **It remembers what you forgot:**
+
 ```
 You:    The deployment keeps failing with that auth error...
-Claude: You debugged this exact issue on March 15th. Root cause was a
-        misconfigured environment variable. The fix was in deploy.yaml line 47.
-        Check if someone reverted that change.
+Claude: You hit this exact issue on March 15th. Root cause: misconfigured
+        env variable. Fix was in deploy.yaml line 47 — check if it was reverted.
 ```
 
 ---
