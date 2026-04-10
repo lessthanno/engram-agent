@@ -76,7 +76,7 @@ def _parse_transcript(path: Path, today: str) -> dict:
     user_messages = []
 
     # Extract project name from path
-    # ~/.cursor/projects/Users-xiaozihao-Documents-...-projectname/agent-transcripts/...
+    # ~/.cursor/projects/Users-username-Documents-...-projectname/agent-transcripts/...
     project = ""
     parts = path.parts
     for i, p in enumerate(parts):

@@ -195,42 +195,112 @@ Like talking to a version of yourself that actually takes notes.
 
 Engram has a built-in skill system. Add custom collectors, synthesizers, or bridges without touching core code.
 
-**Create a skill:**
+### Create a Skill
+
+Drop a folder into `~/.mind/skills/` with two files:
+
 ```
 ~/.mind/skills/my-collector/
   SKILL.md      # metadata (name, type, description)
   skill.py      # your Python code
 ```
 
-**SKILL.md format:**
+### SKILL.md Format
+
 ```yaml
 ---
 name: notion-collector
 description: Collects today's Notion page edits
 type: collector          # collector | synthesizer | bridge
-entry: skill.py
-enabled: true
+entry: skill.py          # optional, defaults to skill.py
+function: collect        # optional, defaults based on type
+enabled: true            # optional, defaults to true
 ---
 ```
 
-**Function signatures by type:**
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `name` | Yes | -- | Unique skill identifier (alphanumeric + hyphens) |
+| `type` | Yes | -- | `collector`, `synthesizer`, or `bridge` |
+| `description` | No | -- | What this skill does |
+| `entry` | No | `skill.py` | Python file containing the function |
+| `function` | No | Based on type | Function name to call (see table below) |
+| `enabled` | No | `true` | Can be overridden in `config.toml` |
 
-| Type | Your function must match |
-|------|------------------------|
-| collector | `collect(today: str) -> dict` |
-| synthesizer | `synthesize(raw: dict, analysis_dir: Path)` |
-| bridge | `bridge(analysis_dir: Path)` |
+### Function Signatures
 
-**Configure per-skill settings in `~/.mind/config.toml`:**
+| Type | Default function name | Signature |
+|------|----------------------|-----------|
+| collector | `collect` | `collect(today: str) -> dict` |
+| synthesizer | `synthesize` | `synthesize(raw: dict, analysis_dir: Path)` |
+| bridge | `bridge` | `bridge(analysis_dir: Path)` |
+
+- **Collectors** receive an ISO date string (e.g. `"2026-04-10"`) and return a dict of collected data, which is merged into the raw data pipeline.
+- **Synthesizers** receive the full raw data dict plus the analysis directory path. They write synthesized files (e.g. `tasks.md`, `patterns.md`) into the directory.
+- **Bridges** receive the analysis directory path and push synthesized results to external systems (e.g. Obsidian, Notion).
+
+You can override the default function name with the `function` field in SKILL.md:
+
+```yaml
+---
+name: my-collector
+type: collector
+function: my_custom_collect
+---
+```
+
+### Configuration
+
+Configure per-skill settings in `~/.mind/config.toml`:
+
 ```toml
 [skills.notion-collector]
 api_key = "ntn_xxxxx"
 database_ids = ["abc123"]
 ```
 
-**Example skills included** in [`examples/skills/`](./examples/skills/):
-- **notion-collector** -- collect Notion page edits
-- **obsidian-bridge** -- write daily insights to Obsidian vault
+Access config inside your skill:
+
+```python
+import config as cfg
+
+skill_cfg = cfg.skill_config("notion-collector")
+api_key = skill_cfg.get("api_key", "")
+```
+
+Configuration priority (highest to lowest):
+1. Environment variables (`MIND_SKILLS_NOTION_COLLECTOR_API_KEY`)
+2. `~/.mind/config.toml`
+3. Default values in code
+
+#### Global Toggle
+
+Disable all skills at once:
+
+```toml
+[skills]
+enabled = false
+```
+
+Or disable a specific skill via config (overrides SKILL.md):
+
+```toml
+[skills.notion-collector]
+enabled = false
+```
+
+### Error Handling
+
+Skills are fault-tolerant by design. If a skill fails at any stage (discovery, loading, or execution), Engram logs a warning and continues normally. A broken skill will never crash the main pipeline.
+
+### Example Skills
+
+Included in [`examples/skills/`](./examples/skills/):
+
+- **notion-collector** -- collect Notion page edits via API
+- **obsidian-bridge** -- write daily insights to Obsidian vault as daily notes
+
+### Auto-Discovery
 
 Skills are auto-discovered at runtime. No registration needed -- just drop a folder into `~/.mind/skills/` and it works.
 

@@ -6,13 +6,21 @@
 # base_url = "https://openrouter.ai/api" # or set ANTHROPIC_BASE_URL env var
 model = "claude-sonnet-4-6"
 
+[user]
+# name = "Your Name"                    # used in weekly reports and wiki title
+# context = "Software engineer at Acme" # optional role/context for AI analysis
+
+[wiki]
+# title = "My Mind Wiki"                # wiki index title
+# motto = ""                            # optional motto shown on wiki index
+
 [paths]
 memory_repo = "~/mind-memory"
 
 [git]
 # author_email = "your@email.com"        # filter commits to only yours
 # scan_roots = ["~/code", "~/projects", "~/Documents"]
-# extra_repos = ["~/code/kinecta", "~/code/xerpaai"]
+# extra_repos = ["~/code/my-project", "~/code/another-project"]
 
 [privacy]
 # Regex patterns — matching shell commands will be redacted

@@ -10,6 +10,8 @@ import re
 from datetime import date, timedelta
 from pathlib import Path
 
+import config as cfg
+
 log = logging.getLogger("mind-sync")
 
 
@@ -49,9 +51,12 @@ def synthesize_weekly(daily_dir: Path, analysis_dir: Path, weekly_dir: Path,
     patterns = _read_file(analysis_dir / "patterns.md", 800)
     weaknesses = _read_file(analysis_dir / "weaknesses.md", 800)
 
-    prompt = f"""You are analyzing ZIHAO's weekly activity to produce a structured weekly review.
+    user_name = cfg.user_name()
+    user_ctx = cfg.user_context()
+    ctx_line = f"\n{user_ctx}\n" if user_ctx else ""
 
-ZIHAO is CTO of XerpaAI, leading ~10 engineers. Core principle: "看得懂的往往是错误的".
+    prompt = f"""You are analyzing {user_name}'s weekly activity to produce a structured weekly review.
+{ctx_line}
 
 ## This week's daily logs ({week_label})
 

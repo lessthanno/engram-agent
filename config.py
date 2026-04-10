@@ -102,8 +102,24 @@ def model() -> str:
     return get("api", "model", "claude-sonnet-4-6")
 
 
+def user_name() -> str:
+    return get("user", "name", "the user")
+
+
+def user_context() -> str:
+    return get("user", "context", "")
+
+
+def wiki_title() -> str:
+    return get("wiki", "title", "Engram Mind Wiki")
+
+
+def wiki_motto() -> str:
+    return get("wiki", "motto", "")
+
+
 def scan_roots() -> list:
-    default = ["~/Documents/01_Projects", "~/code", "~/projects", "~/dev", "~/Desktop"]
+    default = ["~/code", "~/projects", "~/dev", "~/Desktop", "~/Documents"]
     roots = get("git", "scan_roots", default)
     return [Path(r).expanduser() for r in roots]
 

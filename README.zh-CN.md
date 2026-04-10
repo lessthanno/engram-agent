@@ -191,42 +191,112 @@ Engram 运行后，你可以在任何 Claude Code 会话中查询自己的历史
 
 Engram 内置技能系统。你可以添加自定义的采集器、合成器或桥接器，无需修改核心代码。
 
-**创建一个技能：**
+### 创建技能
+
+在 `~/.mind/skills/` 下放一个文件夹，包含两个文件：
+
 ```
 ~/.mind/skills/my-collector/
   SKILL.md      # 元数据（名称、类型、描述）
   skill.py      # 你的 Python 代码
 ```
 
-**SKILL.md 格式：**
+### SKILL.md 格式
+
 ```yaml
 ---
 name: notion-collector
 description: Collects today's Notion page edits
 type: collector          # collector | synthesizer | bridge
-entry: skill.py
-enabled: true
+entry: skill.py          # 可选，默认 skill.py
+function: collect        # 可选，根据类型自动设定
+enabled: true            # 可选，默认 true
 ---
 ```
 
-**不同类型的函数签名：**
+| 字段 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `name` | 是 | -- | 技能唯一标识符（字母、数字、连字符） |
+| `type` | 是 | -- | `collector`、`synthesizer` 或 `bridge` |
+| `description` | 否 | -- | 技能功能描述 |
+| `entry` | 否 | `skill.py` | 包含函数的 Python 文件 |
+| `function` | 否 | 根据类型 | 要调用的函数名（见下表） |
+| `enabled` | 否 | `true` | 可在 `config.toml` 中覆盖 |
 
-| 类型 | 函数签名 |
-|------|---------|
-| collector | `collect(today: str) -> dict` |
-| synthesizer | `synthesize(raw: dict, analysis_dir: Path)` |
-| bridge | `bridge(analysis_dir: Path)` |
+### 函数签名
 
-**在 `~/.mind/config.toml` 中配置技能参数：**
+| 类型 | 默认函数名 | 签名 |
+|------|-----------|------|
+| collector | `collect` | `collect(today: str) -> dict` |
+| synthesizer | `synthesize` | `synthesize(raw: dict, analysis_dir: Path)` |
+| bridge | `bridge` | `bridge(analysis_dir: Path)` |
+
+- **采集器 (collector)** 接收 ISO 日期字符串（如 `"2026-04-10"`），返回采集数据的 dict，合并到原始数据管道中。
+- **合成器 (synthesizer)** 接收完整的原始数据 dict 和分析目录路径，将合成文件（如 `tasks.md`、`patterns.md`）写入该目录。
+- **桥接器 (bridge)** 接收分析目录路径，将合成结果推送到外部系统（如 Obsidian、Notion）。
+
+可以通过 SKILL.md 中的 `function` 字段覆盖默认函数名：
+
+```yaml
+---
+name: my-collector
+type: collector
+function: my_custom_collect
+---
+```
+
+### 配置
+
+在 `~/.mind/config.toml` 中配置技能参数：
+
 ```toml
 [skills.notion-collector]
 api_key = "ntn_xxxxx"
 database_ids = ["abc123"]
 ```
 
-**示例技能**在 [`examples/skills/`](./examples/skills/)：
-- **notion-collector** -- 采集 Notion 页面编辑记录
+在技能代码中访问配置：
+
+```python
+import config as cfg
+
+skill_cfg = cfg.skill_config("notion-collector")
+api_key = skill_cfg.get("api_key", "")
+```
+
+配置优先级（从高到低）：
+1. 环境变量（`MIND_SKILLS_NOTION_COLLECTOR_API_KEY`）
+2. `~/.mind/config.toml`
+3. 代码中的默认值
+
+#### 全局开关
+
+一键禁用所有技能：
+
+```toml
+[skills]
+enabled = false
+```
+
+或通过 config 禁用单个技能（覆盖 SKILL.md 中的设置）：
+
+```toml
+[skills.notion-collector]
+enabled = false
+```
+
+### 容错机制
+
+技能系统默认容错。如果任何技能在发现、加载或执行阶段出错，Engram 会记录警告并继续正常运行。一个损坏的技能永远不会导致主流程崩溃。
+
+### 示例技能
+
+包含在 [`examples/skills/`](./examples/skills/) 中：
+
+- **notion-collector** -- 通过 API 采集 Notion 页面编辑记录
 - **obsidian-bridge** -- 将每日洞察写入 Obsidian 日记
+
+### 自动发现
 
 技能在运行时自动发现。不需要注册 —— 把文件夹放到 `~/.mind/skills/` 就能用。
 

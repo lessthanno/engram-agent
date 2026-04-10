@@ -437,9 +437,9 @@ def _update_index(wiki_dir: Path):
         f"updated: {TODAY}",
         "---",
         "",
-        "# ZIHAO Mind Wiki",
+        f"# {cfg.wiki_title()}",
         "",
-        "> 看得懂的往往是错误的",
+        *([ f"> {cfg.wiki_motto()}", ""] if cfg.wiki_motto() else []),
         "",
     ]
 
