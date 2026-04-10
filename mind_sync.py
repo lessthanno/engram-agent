@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ZIHAO Mind Sync — Daily memory, activity, and self-analysis system.
+Engram Agent — Daily memory, activity, and self-analysis system.
 Runs daily via LaunchAgent. Collects → Analyzes → Synthesizes → Pushes to GitHub.
 
 Usage:
@@ -39,7 +39,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("/tmp/zihao-mind.log", encoding="utf-8"),
+        logging.FileHandler("/tmp/engram-agent.log", encoding="utf-8"),
     ],
 )
 log = logging.getLogger("mind-sync")
@@ -215,7 +215,7 @@ def main():
         try:
             subprocess.run([
                 "osascript", "-e",
-                f'display notification "Mind Sync failed: {e}" with title "ZIHAO Mind"'
+                f'display notification "Mind Sync failed: {e}" with title "Engram"'
             ], capture_output=True, timeout=5)
         except Exception:
             pass
