@@ -56,11 +56,8 @@ def _load_existing(analysis_dir: Path) -> dict:
 
 
 def _build_prompt(raw: dict, existing: dict) -> str:
-    return f"""You are analyzing ZIHAO's daily activity data to update his personal memory system.
-
-ZIHAO is a CTO leading ~10 engineers across XerpaAI, UXLINK, FujiPay, Kinecta.
-His core principle: "看得懂的往往是错误的" — obvious answers are often wrong.
-Decision style: pragmatic, fast, modular, minimal overhead.
+    return f"""You are analyzing the user's daily activity data to update their personal memory system.
+Be specific, honest, and actionable. Focus on patterns, decisions, and open work.
 
 ## Today's raw data ({raw['date']})
 
@@ -101,11 +98,11 @@ Decision style: pragmatic, fast, modular, minimal overhead.
 Produce a JSON response with exactly this structure:
 
 {{
-  "daily_log": "Full markdown daily log (500-800 words). Include: what was worked on, key decisions made, energy/focus quality, open questions. Write in first person as ZIHAO reflecting on his day. Chinese and English mixed as appropriate.",
+  "daily_log": "Full markdown daily log (500-800 words). Include: what was worked on, key decisions made, energy/focus quality, open questions. Write in first person as the user reflecting on their day.",
 
-  "consciousness_update": "Markdown section to ADD to consciousness.md. Capture: new insights, mental model shifts, things that clicked today, things that confused. Be honest about uncertainty. Apply 看得懂的往往是错误的 to any conclusions reached.",
+  "consciousness_update": "Markdown section to ADD to consciousness.md. Capture: new insights, mental model shifts, things that clicked today, things that confused. Be honest about uncertainty. Apply skepticism to any conclusions that feel too obvious.",
 
-  "weaknesses_update": "Markdown section to ADD to weaknesses.md. Identify: what slowed ZIHAO down today, repeated mistakes, gaps in knowledge revealed, decision anti-patterns observed. Be specific, not generic.",
+  "weaknesses_update": "Markdown section to ADD to weaknesses.md. Identify: what slowed the user down today, repeated mistakes, gaps in knowledge revealed, decision anti-patterns observed. Be specific, not generic.",
 
   "tasks_update": "Markdown section to REPLACE tasks.md content. Extract from today's data: open questions as actionable tasks, unfinished work, next steps mentioned. Format as: [ ] task (project) [priority: H/M/L]",
 
@@ -131,10 +128,12 @@ def _safe_truncate(data: dict, max_chars: int) -> str:
     # Final fallback: hard truncate at a safe boundary
     result = result[:max_chars]
     # Find last complete line
-    last_newline = result.rfind("\n")
+    last_newline = result.rfind("
+")
     if last_newline > max_chars * 0.5:
         result = result[:last_newline]
-    return result + '\n  "...": "truncated"'
+    return result + '
+  "...": "truncated"'
 
 
 def _trim_data(data, max_chars: int):
@@ -288,7 +287,9 @@ def _parse_response(response: str, raw: dict, existing: dict) -> dict:
 
     # Try extracting JSON from markdown fences
     if parsed is None:
-        m = re.search(r"```(?:json)?\s*\n(\{.*?\})\s*\n```", clean, re.DOTALL)
+        m = re.search(r"```(?:json)?\s*
+(\{.*?\})\s*
+```", clean, re.DOTALL)
         if m:
             try:
                 parsed = json.loads(m.group(1))
@@ -316,7 +317,10 @@ def _parse_response(response: str, raw: dict, existing: dict) -> dict:
         }
 
     date_str = raw.get("date", TODAY)
-    header = f"\n## {date_str}\n\n"
+    header = f"
+## {date_str}
+
+"
 
     return {
         "daily_log": _build_daily_log(parsed, raw),
@@ -345,18 +349,27 @@ def _prepend_section(existing_content: str, new_content: str,
     if not new_content.strip():
         return existing_content  # no update, keep as-is
 
-    new_section = f"{header}{new_content}\n\n---\n"
+    new_section = f"{header}{new_content}
+
+---
+"
 
     if not existing_content.strip():
-        return f"# {title}\n{new_section}"
+        return f"# {title}
+{new_section}"
 
     # Insert after the first H1 heading line
-    lines = existing_content.split("\n", 1)
+    lines = existing_content.split("
+", 1)
     if lines[0].startswith("# "):
         rest = lines[1] if len(lines) > 1 else ""
-        return f"{lines[0]}\n{new_section}\n{rest}"
+        return f"{lines[0]}
+{new_section}
+{rest}"
 
-    return f"# {title}\n{new_section}\n{existing_content}"
+    return f"# {title}
+{new_section}
+{existing_content}"
 
 
 def _build_daily_log(parsed: dict, raw: dict) -> str:
