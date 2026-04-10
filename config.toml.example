@@ -1,0 +1,19 @@
+# ZIHAO Mind Sync — Configuration
+# Copy to ~/.mind/config.toml and edit
+
+[api]
+# key = "sk-ant-..."                     # or set ANTHROPIC_API_KEY env var
+# base_url = "https://openrouter.ai/api" # or set ANTHROPIC_BASE_URL env var
+model = "claude-sonnet-4-6"
+
+[paths]
+memory_repo = "~/zihao-memory"
+
+[git]
+# author_email = "your@email.com"        # filter commits to only yours
+# scan_roots = ["~/code", "~/projects", "~/Documents"]
+# extra_repos = ["~/code/kinecta", "~/code/xerpaai"]
+
+[privacy]
+# Regex patterns — matching shell commands will be redacted
+# sensitive_patterns = ["sk-[a-zA-Z0-9]", "token=\\S+", "password[=:]\\S+"]

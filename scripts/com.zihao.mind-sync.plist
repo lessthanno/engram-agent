@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mind-sync</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/env</string>
+        <string>python3</string>
+        <string>/Users/YOURUSERNAME/zihao-mind/mind_sync.py</string>
+    </array>
+
+    <!-- Daily at 23:45 -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>23</integer>
+            <key>Minute</key>
+            <integer>45</integer>
+        </dict>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>ZIHAO_MEMORY_REPO</key>
+        <string>/Users/YOURUSERNAME/zihao-memory</string>
+        <key>PATH</key>
+        <string>/Users/YOURUSERNAME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/YOURUSERNAME</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/mind-sync.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/mind-sync-error.log</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
