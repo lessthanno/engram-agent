@@ -1,12 +1,13 @@
 <p align="center">
   <h1 align="center">Engram</h1>
   <p align="center">
-    <strong>AI 编程助手每次对话都会失忆。<br>Engram 让它们拥有记忆。</strong>
+    <strong>Your AI coding tools forget everything between sessions.<br>Engram makes them remember.</strong>
   </p>
   <p align="center">
     <a href="#the-problem">The Problem</a> &bull;
     <a href="#quick-start">Quick Start</a> &bull;
     <a href="#how-it-works">How It Works</a> &bull;
+    <a href="./README.zh-CN.md">中文文档</a> &bull;
     <a href="https://github.com/lessthanno/engram-agent/issues">Issues</a>
   </p>
 </p>
