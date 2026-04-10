@@ -1,23 +1,22 @@
-#!/usr/bin/env bash
+#\!/usr/bin/env bash
 # Lightweight hook: collect AI tool session data after each conversation.
 # Called by Claude Code Stop hook. Runs async, no blocking.
-# Collects from: Claude Code, Codex, Cursor.
 
 set -euo pipefail
 
-MIND_DIR="${ZIHAO_MIND_DIR:-$HOME/Documents/01_Projects/Work_Code/persion/zihao-mind}"
-export ZIHAO_MEMORY_REPO="${ZIHAO_MEMORY_REPO:-$HOME/zihao-memory}"
-export ZIHAO_TODAY=$(date +%Y-%m-%d)
+ENGRAM_DIR="${ENGRAM_DIR:-$HOME/engram-agent}"
+export ENGRAM_MEMORY_REPO="${ENGRAM_MEMORY_REPO:-$HOME/mind-memory}"
+export ENGRAM_TODAY=$(date +%Y-%m-%d)
 
-mkdir -p "$ZIHAO_MEMORY_REPO/raw"
+mkdir -p "$ENGRAM_MEMORY_REPO/raw"
 
-cd "$MIND_DIR"
+cd "$ENGRAM_DIR"
 python3 -c '
 import json, os, sys
 from pathlib import Path
 
-today = os.environ["ZIHAO_TODAY"]
-raw_dir = Path(os.environ["ZIHAO_MEMORY_REPO"]) / "raw"
+today = os.environ["ENGRAM_TODAY"]
+raw_dir = Path(os.environ["ENGRAM_MEMORY_REPO"]) / "raw"
 raw_path = raw_dir / f"{today}.json"
 
 if raw_path.exists():
@@ -27,7 +26,6 @@ else:
 
 claude_projects = Path("~/.claude/projects").expanduser()
 
-# Collect from all available AI tools
 collectors = []
 try:
     from collectors.claude_sessions import collect as c1
