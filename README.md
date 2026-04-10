@@ -69,6 +69,85 @@ Claude: You debugged this exact issue on March 15th. Root cause was a
 
 ---
 
+## How Engram Is Different
+
+> *"Isn't this just mem0 / MemGPT / a CLAUDE.md file?"*
+
+No. They solve different problems at different levels of the stack.
+
+### The fundamental difference
+
+Most "AI memory" tools work **inside conversations** — they remember what you *said* to the AI.
+
+Engram works **outside conversations** — it observes what you *did* on your computer.
+
+That's a completely different data layer.
+
+```
+mem0 / MemGPT / conversation memory:
+
+  You tell Claude "my name is Alex"
+       │
+       ▼
+  Tool stores: "user's name is Alex"
+       │
+       ▼
+  Next session: Claude knows your name
+
+─────────────────────────────────────────────
+
+Engram:
+
+  You spend 3 hours in VS Code, make 7 commits
+  to auth.ts, run the test suite 4 times, then
+  open 12 browser tabs about JWT refresh tokens
+       │
+       ▼
+  Engram captures: what you actually did
+       │
+       ▼
+  Claude synthesizes: "You're debugging a JWT
+  refresh issue. Tests are still failing. You've
+  been on this for 3 hours — likely the token
+  expiry logic in auth.ts:142."
+```
+
+You didn't tell Claude any of that. Engram inferred it from your behavior.
+
+### Side-by-side comparison
+
+| | Engram | mem0 / MemGPT | CLAUDE.md |
+|---|---|---|---|
+| **What it captures** | Your actual behavior (git, apps, files, shell, browser) | What you explicitly tell the AI | What you manually write |
+| **How it works** | Passive observation, runs overnight | Active: intercepts AI conversations | Static: you write and maintain it |
+| **Requires your input?** | No — fully automatic | Yes — you interact with AI normally | Yes — you write and update manually |
+| **Data source** | OS-level activity | Conversation content | Your own notes |
+| **Finds patterns you didn't notice?** | Yes | No | No |
+| **Identifies your weak spots?** | Yes | No | Only if you write them |
+| **Works across AI tools?** | Yes — one memory, all tools | Tool-specific | Tool-specific |
+| **Local / private?** | 100% local, no cloud | Usually cloud-dependent | Local |
+| **Setup** | Install once, never touch again | Requires API integration | Manual ongoing maintenance |
+
+### What they each do well
+
+**Use mem0 / MemGPT if:** you want AI to remember facts you explicitly shared — your name, preferences, project names, instructions you've repeated.
+
+**Use a CLAUDE.md file if:** you want to encode static rules, coding conventions, or project context that doesn't change often.
+
+**Use Engram if:** you want AI to understand *how you actually work* — your rhythms, your recurring mistakes, your unfinished threads, the patterns in your behavior that you can't see yourself.
+
+They solve different problems. Many people use all three.
+
+### The insight Engram is built on
+
+Most tools that call themselves "AI memory" are solving a narrower problem than they appear to be: they're extending the effective context window across sessions, using language as the medium.
+
+Engram adds a new *channel of perception* — one that doesn't go through language at all. Your git history knows things about your work that you would never think to say. Your shell commands reveal priorities you haven't articulated. Your app usage patterns expose habits you haven't noticed.
+
+**The most honest record of how you work isn't what you report — it's what you do.**
+
+---
+
 ## How It Works
 
 Think of it as a **daily journal that writes itself** -- and your AI reads it every morning.
