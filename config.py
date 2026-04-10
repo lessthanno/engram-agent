@@ -83,7 +83,7 @@ def get(section: str, key: str, default=None):
 # ── Convenience accessors ────────────────────────────────────────────────
 
 def memory_repo() -> Path:
-    val = os.environ.get("ZIHAO_MEMORY_REPO") or get("paths", "memory_repo", "~/zihao-memory")
+    val = os.environ.get("ENGRAM_MEMORY_REPO") or get("paths", "memory_repo", "~/mind-memory")
     return Path(val).expanduser()
 
 
