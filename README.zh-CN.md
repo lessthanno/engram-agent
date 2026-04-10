@@ -187,6 +187,51 @@ Engram 运行后，你可以在任何 Claude Code 会话中查询自己的历史
 
 ---
 
+## 技能系统 -- 扩展 Engram
+
+Engram 内置技能系统。你可以添加自定义的采集器、合成器或桥接器，无需修改核心代码。
+
+**创建一个技能：**
+```
+~/.mind/skills/my-collector/
+  SKILL.md      # 元数据（名称、类型、描述）
+  skill.py      # 你的 Python 代码
+```
+
+**SKILL.md 格式：**
+```yaml
+---
+name: notion-collector
+description: Collects today's Notion page edits
+type: collector          # collector | synthesizer | bridge
+entry: skill.py
+enabled: true
+---
+```
+
+**不同类型的函数签名：**
+
+| 类型 | 函数签名 |
+|------|---------|
+| collector | `collect(today: str) -> dict` |
+| synthesizer | `synthesize(raw: dict, analysis_dir: Path)` |
+| bridge | `bridge(analysis_dir: Path)` |
+
+**在 `~/.mind/config.toml` 中配置技能参数：**
+```toml
+[skills.notion-collector]
+api_key = "ntn_xxxxx"
+database_ids = ["abc123"]
+```
+
+**示例技能**在 [`examples/skills/`](./examples/skills/)：
+- **notion-collector** -- 采集 Notion 页面编辑记录
+- **obsidian-bridge** -- 将每日洞察写入 Obsidian 日记
+
+技能在运行时自动发现。不需要注册 —— 把文件夹放到 `~/.mind/skills/` 就能用。
+
+---
+
 ## 环境要求
 
 - **macOS**（Linux 和 Windows 支持即将到来）
