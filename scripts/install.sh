@@ -1,7 +1,6 @@
-#!/bin/bash
-# Mind Sync — Interactive Setup
+#\!/bin/bash
+# Engram Agent — Interactive Setup
 # Run once: bash scripts/install.sh
-# Sets up everything for a new user on their machine.
 
 set -e
 
@@ -19,7 +18,7 @@ ask()  { echo -en "  ${BLUE}?${NC} $1"; }
 
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════${NC}"
-echo -e "${BOLD}  Mind Sync — Personal Memory System Setup ${NC}"
+echo -e "${BOLD}  Engram Agent — Self-Distillation Setup   ${NC}"
 echo -e "${BOLD}═══════════════════════════════════════════${NC}"
 echo ""
 echo "  This will set up:"
@@ -37,7 +36,7 @@ DEFAULT_MEMORY="$HOME/mind-memory"
 ask "Memory repo path [$DEFAULT_MEMORY]: "
 read -r MEMORY_REPO
 MEMORY_REPO="${MEMORY_REPO:-$DEFAULT_MEMORY}"
-MEMORY_REPO=$(eval echo "$MEMORY_REPO")  # expand ~
+MEMORY_REPO=$(eval echo "$MEMORY_REPO")
 
 if [ -d "$MEMORY_REPO/.git" ]; then
     ok "Existing repo found at $MEMORY_REPO"
@@ -55,7 +54,7 @@ fi
 # Create directory structure
 mkdir -p "$MEMORY_REPO"/{daily,weekly,analysis,raw/{claude-sessions,git-activity,app-usage,input-habits},wiki,reports}
 for f in consciousness.md weaknesses.md patterns.md tasks.md; do
-    if [ ! -f "$MEMORY_REPO/analysis/$f" ]; then
+    if [ \! -f "$MEMORY_REPO/analysis/$f" ]; then
         echo "# ${f%.md}" > "$MEMORY_REPO/analysis/$f"
     fi
 done
@@ -68,6 +67,7 @@ echo -e "${BOLD}[2/6] Configuration${NC}"
 CONFIG_DIR="$HOME/.mind"
 CONFIG_FILE="$CONFIG_DIR/config.toml"
 mkdir -p "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR/skills"
 
 if [ -f "$CONFIG_FILE" ]; then
     ok "Config already exists at $CONFIG_FILE"
@@ -84,10 +84,9 @@ else
     read -r SCAN_ROOTS
     SCAN_ROOTS="${SCAN_ROOTS:-$DEFAULT_ROOTS}"
 
-    # Write config
     cat > "$CONFIG_FILE" << EOF
-# Mind Sync — Configuration
-# Docs: https://github.com/xiaozihao/zihao-mind
+# Engram Agent — Configuration
+# Docs: https://github.com/lessthanno/engram-agent
 
 [api]
 # Synthesis uses local \`claude\` CLI by default (no key needed).
@@ -104,8 +103,14 @@ author_email = "$GIT_EMAIL"
 scan_roots = $SCAN_ROOTS
 
 [privacy]
-# Regex patterns — matching shell commands will be redacted
 sensitive_patterns = ["sk-[a-zA-Z0-9]", "token=\\\\S+", "password[=:]\\\\S+", "secret[=:]\\\\S+"]
+
+[skills]
+enabled = true
+# Per-skill config: [skills.<name>]
+# Example:
+# [skills.notion-collector]
+# api_key = "ntn_xxxxx"
 EOF
     ok "Config written to $CONFIG_FILE"
 fi
@@ -130,38 +135,22 @@ else
     warn "Install: https://docs.anthropic.com/en/docs/claude-code"
 fi
 
-if command -v codex &>/dev/null; then
-    ok "Codex: detected (sessions at ~/.codex/)"
-else
-    echo "  - Codex: not installed (optional)"
-fi
-
-if command -v cursor &>/dev/null; then
-    ok "Cursor: detected (sessions at ~/.cursor/)"
-else
-    echo "  - Cursor: not installed (optional)"
-fi
-
-if command -v ccr &>/dev/null; then
-    ok "Claude Code Router: detected"
-    if ccr status 2>&1 | grep -q "Running"; then
-        ok "  CCR is running (synthesis can use local proxy)"
+for tool in codex cursor; do
+    if command -v $tool &>/dev/null; then
+        ok "$tool: detected"
     else
-        echo "  - CCR installed but not running. Start with: ccr start"
+        echo "  - $tool: not installed (optional)"
     fi
-else
-    echo "  - Claude Code Router: not installed (optional)"
-fi
+done
 
 # ── Step 4: Claude Code hooks ────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}[4/6] Claude Code Hooks${NC}"
 
 SETTINGS_LOCAL="$HOME/.claude/settings.local.json"
-MIND_SCRIPTS="$SCRIPT_DIR/scripts"
+ENGRAM_SCRIPTS="$SCRIPT_DIR/scripts"
 
 if [ -f "$SETTINGS_LOCAL" ]; then
-    # Check if hooks already exist
     if python3 -c "import json; d=json.load(open('$SETTINGS_LOCAL')); assert 'SessionStart' in d.get('hooks',{})" 2>/dev/null; then
         ok "Hooks already configured"
     else
@@ -174,16 +163,15 @@ f = Path("$SETTINGS_LOCAL")
 cfg = json.loads(f.read_text())
 
 hooks = cfg.setdefault("hooks", {})
-hooks["SessionStart"] = [{"hooks": [{"type": "command", "command": "bash $MIND_SCRIPTS/session_context.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Loading memory context..."}]}]
-hooks["PreCompact"] = [{"hooks": [{"type": "command", "command": "bash $MIND_SCRIPTS/pre_compact.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Preserving context before compact..."}]}]
-hooks["Stop"] = [{"hooks": [{"type": "command", "command": "bash $MIND_SCRIPTS/session_sync.sh 2>/dev/null || true", "timeout": 15, "statusMessage": "Syncing session to memory...", "async": True}]}]
+hooks["SessionStart"] = [{"hooks": [{"type": "command", "command": "bash $ENGRAM_SCRIPTS/session_context.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Loading memory context..."}]}]
+hooks["PreCompact"] = [{"hooks": [{"type": "command", "command": "bash $ENGRAM_SCRIPTS/pre_compact.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Preserving context before compact..."}]}]
+hooks["Stop"] = [{"hooks": [{"type": "command", "command": "bash $ENGRAM_SCRIPTS/session_sync.sh 2>/dev/null || true", "timeout": 15, "statusMessage": "Syncing session to memory...", "async": True}]}]
 
 f.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
 PYEOF
         ok "Hooks added (SessionStart, PreCompact, Stop)"
     fi
 else
-    # Create new settings.local.json with hooks
     mkdir -p "$HOME/.claude"
     python3 << PYEOF
 import json
@@ -191,9 +179,9 @@ from pathlib import Path
 
 cfg = {
     "hooks": {
-        "SessionStart": [{"hooks": [{"type": "command", "command": "bash $MIND_SCRIPTS/session_context.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Loading memory context..."}]}],
-        "PreCompact": [{"hooks": [{"type": "command", "command": "bash $MIND_SCRIPTS/pre_compact.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Preserving context before compact..."}]}],
-        "Stop": [{"hooks": [{"type": "command", "command": "bash $MIND_SCRIPTS/session_sync.sh 2>/dev/null || true", "timeout": 15, "statusMessage": "Syncing session to memory...", "async": True}]}]
+        "SessionStart": [{"hooks": [{"type": "command", "command": "bash $ENGRAM_SCRIPTS/session_context.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Loading memory context..."}]}],
+        "PreCompact": [{"hooks": [{"type": "command", "command": "bash $ENGRAM_SCRIPTS/pre_compact.sh 2>/dev/null || echo '{}'", "timeout": 5, "statusMessage": "Preserving context before compact..."}]}],
+        "Stop": [{"hooks": [{"type": "command", "command": "bash $ENGRAM_SCRIPTS/session_sync.sh 2>/dev/null || true", "timeout": 15, "statusMessage": "Syncing session to memory...", "async": True}]}]
     }
 }
 Path("$SETTINGS_LOCAL").write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
@@ -214,17 +202,19 @@ ok "memory-analyst agent installed"
 echo ""
 echo -e "${BOLD}[6/6] LaunchAgent (daily auto-sync at 23:45)${NC}"
 
-PLIST_SRC="$SCRIPT_DIR/scripts/com.zihao.mind-sync.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.mind-sync.plist"
+PLIST_SRC="$SCRIPT_DIR/scripts/com.engram-agent.plist"
+PLIST_DST="$HOME/Library/LaunchAgents/com.engram-agent.plist"
 
 mkdir -p "$HOME/Library/LaunchAgents"
 
 sed \
-    -e "s|YOURUSERNAME|$USERNAME|g" \
-    -e "s|/Users/YOURUSERNAME/zihao-mind|$SCRIPT_DIR|g" \
-    -e "s|/Users/YOURUSERNAME/zihao-memory|$MEMORY_REPO|g" \
+    -e "s|ENGRAM_DIR_PLACEHOLDER|$SCRIPT_DIR|g" \
+    -e "s|MEMORY_REPO_PLACEHOLDER|$MEMORY_REPO|g" \
+    -e "s|HOME_PLACEHOLDER|$HOME|g" \
     "$PLIST_SRC" > "$PLIST_DST"
 
+# Unload old plist if exists
+launchctl unload "$HOME/Library/LaunchAgents/com.mind-sync.plist" 2>/dev/null || true
 launchctl unload "$PLIST_DST" 2>/dev/null || true
 launchctl load "$PLIST_DST"
 ok "LaunchAgent loaded (daily at 23:45)"
@@ -232,17 +222,20 @@ ok "LaunchAgent loaded (daily at 23:45)"
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════${NC}"
-echo -e "${BOLD}  Setup complete!${NC}"
+echo -e "${BOLD}  Setup complete\!${NC}"
 echo -e "${BOLD}═══════════════════════════════════════════${NC}"
 echo ""
 echo "  Test it now:"
 echo -e "    ${BLUE}cd $SCRIPT_DIR && python3 mind_sync.py --force${NC}"
 echo ""
 echo "  Check logs:"
-echo -e "    ${BLUE}tail -f /tmp/zihao-mind.log${NC}"
+echo -e "    ${BLUE}tail -f /tmp/engram-agent.log${NC}"
 echo ""
 echo "  Your memory repo:"
 echo -e "    ${BLUE}$MEMORY_REPO${NC}"
+echo ""
+echo "  Skills directory:"
+echo -e "    ${BLUE}~/.mind/skills/${NC}"
 echo ""
 echo "  To push to GitHub (optional):"
 echo -e "    ${BLUE}cd $MEMORY_REPO${NC}"
@@ -251,10 +244,10 @@ echo ""
 echo "  Restart Claude Code to activate the memory-analyst agent."
 echo ""
 
-# ── Uninstall hint ───────────────────────────────────────────────────────────
+# ── Generate uninstall script ────────────────────────────────────────────────
 cat > "$SCRIPT_DIR/scripts/uninstall.sh" << UNINSTALL
-#!/bin/bash
-# Mind Sync — Uninstall
+#\!/bin/bash
+# Engram Agent — Uninstall
 launchctl unload "$PLIST_DST" 2>/dev/null
 rm -f "$PLIST_DST"
 rm -f "$AGENTS_DIR/memory-analyst.md"
