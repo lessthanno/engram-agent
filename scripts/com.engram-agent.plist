@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.engram-agent</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/env</string>
+        <string>python3</string>
+        <string>ENGRAM_DIR_PLACEHOLDER/mind_sync.py</string>
+    </array>
+
+    <!-- Daily at 23:45 -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>23</integer>
+            <key>Minute</key>
+            <integer>45</integer>
+        </dict>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>ENGRAM_MEMORY_REPO</key>
+        <string>MEMORY_REPO_PLACEHOLDER</string>
+        <key>PATH</key>
+        <string>HOME_PLACEHOLDER/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>HOME_PLACEHOLDER</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/engram-agent.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/engram-agent-error.log</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
