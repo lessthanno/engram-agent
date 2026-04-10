@@ -191,6 +191,51 @@ Like talking to a version of yourself that actually takes notes.
 
 ---
 
+## Skills -- Extend Engram
+
+Engram has a built-in skill system. Add custom collectors, synthesizers, or bridges without touching core code.
+
+**Create a skill:**
+```
+~/.mind/skills/my-collector/
+  SKILL.md      # metadata (name, type, description)
+  skill.py      # your Python code
+```
+
+**SKILL.md format:**
+```yaml
+---
+name: notion-collector
+description: Collects today's Notion page edits
+type: collector          # collector | synthesizer | bridge
+entry: skill.py
+enabled: true
+---
+```
+
+**Function signatures by type:**
+
+| Type | Your function must match |
+|------|------------------------|
+| collector | `collect(today: str) -> dict` |
+| synthesizer | `synthesize(raw: dict, analysis_dir: Path)` |
+| bridge | `bridge(analysis_dir: Path)` |
+
+**Configure per-skill settings in `~/.mind/config.toml`:**
+```toml
+[skills.notion-collector]
+api_key = "ntn_xxxxx"
+database_ids = ["abc123"]
+```
+
+**Example skills included** in [`examples/skills/`](./examples/skills/):
+- **notion-collector** -- collect Notion page edits
+- **obsidian-bridge** -- write daily insights to Obsidian vault
+
+Skills are auto-discovered at runtime. No registration needed -- just drop a folder into `~/.mind/skills/` and it works.
+
+---
+
 ## Requirements
 
 - **macOS** (Linux and Windows support coming)
