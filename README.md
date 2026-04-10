@@ -1,249 +1,198 @@
 <p align="center">
   <h1 align="center">Engram</h1>
   <p align="center">
-    <strong>Your AI coding tools forget everything between sessions.<br>Engram makes them remember.</strong>
+    <strong>AI 编程助手每次对话都会失忆。<br>Engram 让它们拥有记忆。</strong>
   </p>
   <p align="center">
+    <a href="#the-problem">The Problem</a> &bull;
     <a href="#quick-start">Quick Start</a> &bull;
     <a href="#how-it-works">How It Works</a> &bull;
-    <a href="#supported-tools">Supported Tools</a> &bull;
     <a href="https://github.com/lessthanno/engram-agent/issues">Issues</a>
   </p>
 </p>
 
 ---
 
-Every time you start a new Claude Code / Cursor / Codex session, your AI assistant starts from zero. It doesn't know what you worked on yesterday, what decisions you made, or what patterns you're repeating.
+## The Problem
 
-**Engram fixes this.** It automatically collects your dev activity, synthesizes daily self-analysis with Claude, and writes insights back into `~/.claude/`, `~/.codex/`, and `~/.cursor/`. Your AI tools wake up smarter every morning. Self-distillation for developers.
+Imagine hiring a brilliant assistant who gets amnesia every night.
 
-- **Zero effort** -- hooks + LaunchAgent, fully automatic
-- **Zero cloud** -- all data stays on your machine
-- **Zero deps** -- Python stdlib only, no pip install needed
-- **Cross-tool** -- Claude Code, Codex, Cursor, Claude Code Router
+Every morning, you walk in and they ask: *"Hi, who are you? What are we working on?"* You explain everything again. They do great work. Then they go home, forget it all, and the cycle repeats.
 
-## What It Feels Like
+**That's how AI coding tools work today.** Claude Code, Cursor, Codex -- they're incredibly capable, but every session starts from zero. No memory of yesterday's decisions. No awareness of your habits. No continuity.
 
-**Monday morning, without Engram:**
+**Engram gives them a memory.**
+
+It runs quietly in the background, observing what you work on each day. At night, it writes a "briefing" for your AI tools. The next morning, they already know your open tasks, your patterns, even your blind spots.
+
+No cloud. No setup. No maintenance. Just smarter AI, every day.
+
+---
+
+## What Changes
+
+**Without Engram -- every morning:**
 ```
-You: Fix the payment webhook handler
-Claude: Sure, what framework are you using? What's the current implementation?
-        (starts from zero, asks 10 questions you answered last week)
-```
-
-**Monday morning, with Engram:**
-```
-[SessionStart hook injects context]
-
-You: Fix the payment webhook handler
-Claude: Based on your session history, you were working on the Stripe dispute
-        webhook last Friday. 3 events still need implementation:
-        charge.dispute.funds_withdrawn, funds_reinstated, and
-        radar.early_fraud_warning.created. Your FujiPay project uses Go + the
-        stripe-go SDK. Want me to continue from where you left off?
+You:    Fix the payment webhook
+Claude: Sure! What framework are you using? What's the current setup?
+        (asks 10 questions you answered last week)
 ```
 
-**Your AI notices patterns you don't:**
+**With Engram -- every morning:**
+```
+You:    Fix the payment webhook
+Claude: You were working on the Stripe dispute webhook last Friday.
+        3 events still need implementation. Your project uses Go + stripe-go SDK.
+        Want me to continue where you left off?
+```
+
+**It notices things you don't:**
 ```
 [From daily analysis]
 
-Weakness detected: You context-switched between 8 projects yesterday.
-On days with <3 switches, your commit output is 2.4x higher.
-Recommendation: Block 2 hours for FujiPay webhook before opening other projects.
+You context-switched between 8 projects yesterday.
+On days with <3 switches, your output is 2.4x higher.
+Suggestion: Block 2 focused hours before opening other projects.
 ```
 
-**Your AI remembers what you forgot:**
+**It remembers what you forgot:**
 ```
-You: I'm seeing Redis connection timeouts again
-Claude: You debugged this exact issue on March 15th. Root cause was pool.MaxIdle
-        set to 10 (too low for your connection volume). The fix was in
-        cmd/server/redis.go:47. Check if someone reverted that change.
-```
-
-## Quick Start
-
-```bash
-git clone https://github.com/lessthanno/engram.git ~/engram
-bash ~/engram/scripts/install.sh
+You:    Redis connection timeouts again...
+Claude: You fixed this exact issue on March 15th. Root cause was pool.MaxIdle
+        set too low. The fix was in cmd/server/redis.go line 47.
+        Check if someone reverted that change.
 ```
 
-The interactive installer asks 3 questions (memory repo path, git email, scan roots), then sets up everything:
-
-- Private memory repo with daily/weekly/analysis structure
-- Config at `~/.mind/config.toml`
-- Claude Code hooks (SessionStart, PreCompact, Stop)
-- `memory-analyst` agent for querying your history
-- LaunchAgent for daily auto-sync at 23:45
+---
 
 ## How It Works
 
-```
- You start a new Claude Code session
-        |
-        v
- +----------------------------------+
- |  SessionStart Hook               |  Injects yesterday's tasks +
- |  "Loading memory context..."     |  last session summary into context
- +----------------------------------+
-        |
-        v
-   You work normally. Claude Code / Cursor / Codex.
-        |
-        v
- +----------------------------------+
- |  Stop Hook (async)               |  Captures session data:
- |  "Syncing session to memory..."  |  decisions, topics, files touched
- +----------------------------------+
-        |
-        v
- +----------------------------------+
- |  Daily Sync (23:45 LaunchAgent)  |
- |                                  |
- |  Collect --> 7 collectors run    |
- |  Synthesize --> Claude analyzes  |
- |  Bridge --> writes back to       |
- |    ~/.claude/memory/             |
- |    ~/.codex/                     |
- |    ~/.cursor/                    |
- |  Git commit --> version history  |
- +----------------------------------+
-        |
-        v
-  Next morning: your AI tools know what you did.
-  They see your open tasks, patterns, and weak spots.
-  The loop repeats. They get smarter every day.
-```
-
-## The Feedback Loop
-
-This is what makes Engram different from static memory tools:
+Think of it as a **daily journal that writes itself** -- and your AI reads it every morning.
 
 ```
-              +---------------------+
-              |   Your AI Sessions  |
-              |  Claude / Codex /   |
-              |     Cursor          |
-              +---------+-----------+
-                        | sessions, decisions
-                        v
-              +---------------------+
-              |     Collectors      |
-              |  7 data sources     |
-              +---------+-----------+
-                        | raw JSON
-                        v
-              +---------------------+
-              |    Synthesizer      |
-              |  Claude AI analysis |
-              +---------+-----------+
-                        | daily log + analysis
-                        v
-              +---------------------+
-              |      Bridge         |--> ~/.claude/memory/
-              |  Write insights     |--> ~/.codex/
-              |  back to tools      |--> ~/.cursor/
-              +---------+-----------+
-                        |
-                        v
-              Your AI tools are now smarter.
-              Loop repeats tomorrow.
+                    You work normally
+                          |
+                          v
+             Engram watches silently
+          (git commits, sessions, shell history,
+           browser tabs, app usage -- 7 sources)
+                          |
+                          v
+             Every night at 23:45,
+          Claude reads all the raw data and
+            writes a daily "briefing":
+                          |
+          +---------------+---------------+
+          |               |               |
+     What you did    Your patterns   Open tasks
+     today           & weak spots    for tomorrow
+          |               |               |
+          +---------------+---------------+
+                          |
+                          v
+          Next morning, your AI tools
+          read the briefing automatically.
+          They know you. The loop repeats.
 ```
+
+**That's it.** No dashboards to check. No notes to write. No buttons to click.
+
+---
+
+## Quick Start
+
+Three commands. Two minutes.
+
+```bash
+git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent
+cd ~/engram-agent
+bash scripts/install.sh
+```
+
+The installer asks 3 questions (where to store memory, your email, which folders to scan), then sets up everything automatically.
+
+After install, **you don't need to do anything.** Engram runs on its own.
+
+---
+
+## What It Collects
+
+Engram gathers context from 7 sources -- all local, nothing leaves your machine:
+
+| Source | What it captures |
+|--------|-----------------|
+| **AI sessions** | What you discussed with Claude / Cursor / Codex |
+| **Git commits** | What code you changed and how fast |
+| **Shell history** | What commands you ran (passwords auto-redacted) |
+| **Browser tabs** | What you were researching |
+| **App usage** | Which apps you spent time in |
+| **Recent files** | What documents you touched |
+| **System state** | Running processes, active projects |
+
+---
+
+## What It Produces
+
+Every night, Claude analyzes your day and writes:
+
+| Output | Purpose |
+|--------|---------|
+| **Daily log** | A complete record of what you did today |
+| **Open tasks** | Unfinished work extracted from your sessions |
+| **Patterns** | Behavioral trends (e.g., "productive in mornings") |
+| **Weak spots** | Recurring problems (e.g., "context-switching too much") |
+| **Weekly report** | Trends over the past 7 days |
+
+All stored as plain Markdown files in a local git repo. Human-readable. Version-controlled. Yours.
+
+---
 
 ## Supported Tools
 
-| Tool | Collection | Write-back | Hooks |
-|------|-----------|------------|-------|
-| **Claude Code** | Session transcripts, decisions, topics | Auto-memory bridge | SessionStart, PreCompact, Stop |
-| **Codex (OpenAI)** | History, archived rollouts | Planned | -- |
-| **Cursor** | Agent transcripts | Planned | -- |
-| **Claude Code Router** | Synthesis via local proxy | -- | -- |
+| Tool | Status |
+|------|--------|
+| **Claude Code** | Full support -- reads sessions, writes back context, hooks installed |
+| **Codex** | Collects session data, write-back coming soon |
+| **Cursor** | Collects session data, write-back coming soon |
 
-Missing a tool? Collectors auto-detect what's installed. Missing tools are skipped gracefully.
+Missing tools are skipped gracefully. No errors, no broken setup.
 
-## What Gets Collected
+---
 
-| Collector | Source | Data |
-|-----------|--------|------|
-| `claude_sessions` | `~/.claude/projects/*.jsonl` | Decisions, topics, files, open questions |
-| `codex_sessions` | `~/.codex/history.jsonl` + `archived_sessions/` | Prompts, rollout sessions |
-| `cursor_sessions` | `~/.cursor/projects/*/agent-transcripts/` | Agent transcripts, files |
-| `git_activity` | Local git repos | Commits, velocity, changed files |
-| `app_usage` | ActivityWatch / macOS | App time, focus score |
-| `input_habits` | ActivityWatch + shell history | Top tools, command patterns |
-| `system_ops` | macOS | Recent files, browser tabs, processes |
+## Privacy -- The Non-Negotiable
 
-## What Gets Synthesized
+- **100% local.** Your data never leaves your machine.
+- **No cloud.** No accounts. No servers. No subscriptions.
+- **No telemetry.** We don't track anything. Not even anonymous usage stats.
+- **Passwords scrubbed.** API keys, tokens, and secrets are automatically removed from collected data.
+- **You own everything.** Plain files in a git repo. Delete them anytime.
 
-Every night, Claude analyzes your raw data and produces:
+---
 
-| File | Purpose | Update Mode |
-|------|---------|-------------|
-| `daily/YYYY-MM-DD.md` | Full day log with stats | New file each day |
-| `analysis/consciousness.md` | Insights, mental model shifts | Prepend (newest first) |
-| `analysis/weaknesses.md` | Recurring problems, anti-patterns | Prepend |
-| `analysis/patterns.md` | Behavioral and work patterns | Prepend |
-| `analysis/tasks.md` | Open tasks extracted from sessions | Replace (current state) |
-| `weekly/YYYY-WNN.md` | Weekly trend report | Sunday |
+## Ask Your Memory
 
-## Claude Code Agent: memory-analyst
-
-Query your personal memory repo from any Claude Code session:
+Once Engram is running, you can query your own history from any Claude Code session:
 
 ```
+> @memory-analyst What was I working on last Tuesday?
+> @memory-analyst Have I seen this bug before?
+> @memory-analyst What are my open tasks?
 > @memory-analyst What patterns am I showing this week?
-> @memory-analyst Have I dealt with this auth issue before?
-> @memory-analyst What are my current open tasks?
-> @memory-analyst What did I work on last Tuesday?
 ```
 
-## Configuration
+Like talking to a version of yourself that actually takes notes.
 
-```toml
-# ~/.mind/config.toml
+---
 
-[api]
-model = "claude-sonnet-4-6"
-# key = "sk-..."          # only if claude CLI unavailable
-# base_url = "https://openrouter.ai/api"
+## Requirements
 
-[paths]
-memory_repo = "~/mind-memory"
+- **macOS** (Linux and Windows support coming)
+- **Python 3.10+** (already on your Mac -- no installs needed)
+- **Claude CLI** for AI-powered analysis (optional -- works without it, just less smart)
 
-[git]
-author_email = "you@email.com"
-scan_roots = ["~/code", "~/projects"]
+Zero external dependencies. No `pip install`. No `npm`. No Docker. Just Python.
 
-[privacy]
-# Regex patterns -- matching shell commands will be redacted
-sensitive_patterns = ["sk-[a-zA-Z0-9]", "token=\\S+", "password[=:]\\S+"]
-```
-
-## Synthesis Priority
-
-Engram tries multiple strategies to synthesize your data:
-
-1. `claude --print` CLI (uses your existing OAuth auth)
-2. Claude Code Router local proxy (`localhost:3456`)
-3. HTTP API (Anthropic / OpenRouter, if key configured)
-4. Offline mode (raw data log, no AI analysis)
-
-## Privacy
-
-- **100% local.** No data leaves your machine unless you choose to push to GitHub.
-- **Sensitive data redacted.** API keys, tokens, passwords are scrubbed from shell history.
-- **Private by default.** Memory repo is local git. Push to a private GitHub repo for backup.
-- **No telemetry.** No analytics. No phone home. Ever.
-
-## CLI
-
-```bash
-python3 mind_sync.py              # full daily sync
-python3 mind_sync.py --collect    # collect only
-python3 mind_sync.py --synthesize # synthesize only
-python3 mind_sync.py --weekly     # weekly report
-python3 mind_sync.py --push       # git push
-python3 mind_sync.py --force      # re-run today
-```
+---
 
 ## Uninstall
 
@@ -251,26 +200,21 @@ python3 mind_sync.py --force      # re-run today
 bash scripts/uninstall.sh
 ```
 
-Removes LaunchAgent and Claude Code agent. Your memory repo is preserved.
+Removes everything except your memory repo. Your data is always preserved.
 
-## Requirements
-
-- macOS (LaunchAgent, AppleScript fallbacks)
-- Python 3.10+ (stdlib only, no pip packages)
-- `claude` CLI for AI synthesis (optional)
-- [ActivityWatch](https://activitywatch.net) for detailed tracking (optional)
+---
 
 ## Contributing
 
-Issues and PRs welcome. The codebase is intentionally simple -- Python stdlib only, no frameworks, no build step.
+The codebase is intentionally simple -- plain Python, no frameworks, no build step.
 
-Key areas for contribution:
-- **Linux support** -- systemd timer, replace AppleScript
-- **Windows support** -- Task Scheduler, replace AppleScript
-- **Codex/Cursor write-back** -- bridge insights into their config systems
-- **New collectors** -- VS Code sessions, Warp terminal, JetBrains, etc.
-- **Dashboard** -- local web UI for trends over time
-- **Team mode** -- anonymized pattern sharing across a team
+Areas where help is welcome:
+- **Linux / Windows support**
+- **More AI tool integrations** (VS Code, JetBrains, Warp)
+- **Local dashboard** for browsing your history visually
+- **Team mode** for shared (anonymized) pattern insights
+
+---
 
 ## License
 
@@ -279,5 +223,5 @@ MIT
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/lessthanno">@lessthanno</a>.<br>Your AI tools should learn from you, not start from scratch every time.</sub>
+  <sub>Built by <a href="https://github.com/lessthanno">@lessthanno</a>.<br>Your AI should learn from you -- not start from scratch every time.</sub>
 </p>
