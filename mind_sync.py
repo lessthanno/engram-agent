@@ -77,6 +77,17 @@ def collect_all():
         ("input_habits", lambda: c4(TODAY)),
         ("system_ops", lambda: c5(TODAY)),
     ]
+    # Append skill-based collectors
+    try:
+        from skill_loader import discover, load_function
+        for skill in discover():
+            if skill["type"] == "collector":
+                fn = load_function(skill)
+                collectors.append((skill["name"], lambda f=fn: f(TODAY)))
+                log.info(f"  skill loaded: {skill['name']}")
+    except Exception as e:
+        log.debug(f"skill discovery skipped: {e}")
+
     for name, fn in collectors:
         try:
             raw[name] = fn()
@@ -174,6 +185,20 @@ def main():
         if full_run or args.synthesize:
             synthesize(raw)
 
+            # Run skill-based synthesizers
+            try:
+                from skill_loader import discover, load_function
+                for skill in discover():
+                    if skill["type"] == "synthesizer":
+                        try:
+                            fn = load_function(skill)
+                            fn(raw, ANALYSIS_DIR)
+                            log.info(f"skill synthesizer: {skill['name']} OK")
+                        except Exception as e:
+                            log.warning(f"skill synthesizer {skill['name']} failed: {e}")
+            except Exception:
+                pass
+
         if full_run or args.wiki:
             from synthesizers.wiki import ingest as wiki_ingest
             wiki_ingest(raw, WIKI_DIR)
@@ -203,6 +228,20 @@ def main():
                 log.info("bridged insights → Claude auto-memory")
             except Exception as e:
                 log.warning(f"bridge failed: {e}")
+
+            # Run skill-based bridges
+            try:
+                from skill_loader import discover, load_function
+                for skill in discover():
+                    if skill["type"] == "bridge":
+                        try:
+                            fn = load_function(skill)
+                            fn(ANALYSIS_DIR)
+                            log.info(f"skill bridge: {skill['name']} OK")
+                        except Exception as e:
+                            log.warning(f"skill bridge {skill['name']} failed: {e}")
+            except Exception:
+                pass
 
         if full_run or args.push:
             git_push()
