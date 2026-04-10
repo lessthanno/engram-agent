@@ -117,6 +117,16 @@ def extra_repos() -> list:
     return [Path(r).expanduser() for r in repos]
 
 
+def skills_enabled() -> bool:
+    val = get("skills", "enabled", True)
+    return val not in ("false", "False", False, 0)
+
+
+def skill_config(skill_name: str) -> dict:
+    """Return config dict for a specific skill from [skills.<name>] section."""
+    return _load_config().get(f"skills.{skill_name}", {})
+
+
 def sensitive_patterns() -> list:
     return get("privacy", "sensitive_patterns", [
         r"sk-[a-zA-Z0-9]",
