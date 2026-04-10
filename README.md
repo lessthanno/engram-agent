@@ -7,7 +7,7 @@
     <a href="#quick-start">Quick Start</a> &bull;
     <a href="#how-it-works">How It Works</a> &bull;
     <a href="#supported-tools">Supported Tools</a> &bull;
-    <a href="https://github.com/lessthanno/engram/issues">Issues</a>
+    <a href="https://github.com/lessthanno/engram-agent/issues">Issues</a>
   </p>
 </p>
 
@@ -21,6 +21,44 @@ Every time you start a new Claude Code / Cursor / Codex session, your AI assista
 - **Zero cloud** -- all data stays on your machine
 - **Zero deps** -- Python stdlib only, no pip install needed
 - **Cross-tool** -- Claude Code, Codex, Cursor, Claude Code Router
+
+## What It Feels Like
+
+**Monday morning, without Engram:**
+```
+You: Fix the payment webhook handler
+Claude: Sure, what framework are you using? What's the current implementation?
+        (starts from zero, asks 10 questions you answered last week)
+```
+
+**Monday morning, with Engram:**
+```
+[SessionStart hook injects context]
+
+You: Fix the payment webhook handler
+Claude: Based on your session history, you were working on the Stripe dispute
+        webhook last Friday. 3 events still need implementation:
+        charge.dispute.funds_withdrawn, funds_reinstated, and
+        radar.early_fraud_warning.created. Your FujiPay project uses Go + the
+        stripe-go SDK. Want me to continue from where you left off?
+```
+
+**Your AI notices patterns you don't:**
+```
+[From daily analysis]
+
+Weakness detected: You context-switched between 8 projects yesterday.
+On days with <3 switches, your commit output is 2.4x higher.
+Recommendation: Block 2 hours for FujiPay webhook before opening other projects.
+```
+
+**Your AI remembers what you forgot:**
+```
+You: I'm seeing Redis connection timeouts again
+Claude: You debugged this exact issue on March 15th. Root cause was pool.MaxIdle
+        set to 10 (too low for your connection volume). The fix was in
+        cmd/server/redis.go:47. Check if someone reverted that change.
+```
 
 ## Quick Start
 
