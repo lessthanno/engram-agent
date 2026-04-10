@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">Engram</h1>
   <p align="center">
-    <strong>AI 工具每次对话都会失忆。<br>Engram 让它们记住你。</strong>
+    <strong>知识工作者的自我蒸馏系统。<br>你的 AI 工具记得你是谁 —— 因为每晚，你都在自动告诉它们。</strong>
   </p>
   <p align="center">
     <a href="#问题">问题</a> &bull;
