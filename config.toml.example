@@ -1,4 +1,4 @@
-# ZIHAO Mind Sync — Configuration
+# Engram — Configuration
 # Copy to ~/.mind/config.toml and edit
 
 [api]
@@ -7,7 +7,7 @@
 model = "claude-sonnet-4-6"
 
 [paths]
-memory_repo = "~/zihao-memory"
+memory_repo = "~/mind-memory"
 
 [git]
 # author_email = "your@email.com"        # filter commits to only yours
@@ -16,4 +16,4 @@ memory_repo = "~/zihao-memory"
 
 [privacy]
 # Regex patterns — matching shell commands will be redacted
-# sensitive_patterns = ["sk-[a-zA-Z0-9]", "token=\\S+", "password[=:]\\S+"]
+# sensitive_patterns = ["sk-[a-zA-Z0-9]", "token=\S+", "password[=:]\S+"]
