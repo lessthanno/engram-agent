@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">Engram</h1>
   <p align="center">
-    <strong>Your AI tools forget everything between sessions.<br>Engram makes them remember you.</strong>
+    <strong>Self-distillation for knowledge workers.<br>Your AI tools remember who you are — because you told them, every night, automatically.</strong>
   </p>
   <p align="center">
     <a href="#the-problem">The Problem</a> &bull;
