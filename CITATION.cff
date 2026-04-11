@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you reference Engram, please cite it as below."
+title: "Engram: Behavioral Memory for AI Tools"
+type: software
+authors:
+  - alias: lessthanno
+url: "https://github.com/lessthanno/engram-agent"
+repository-code: "https://github.com/lessthanno/engram-agent"
+license: MIT
+keywords:
+  - ai-memory
+  - behavioral-memory
+  - self-distillation
+  - developer-tools
+  - claude-code

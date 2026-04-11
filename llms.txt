@@ -1,0 +1,24 @@
+# Engram
+
+> Persistent behavioral memory for AI tools. 100% local.
+
+Engram observes how you work — git, shell, browser, apps — and distills it into memory your AI reads every morning.
+
+## Key facts
+- Captures behavior, not conversations
+- 7 data sources, all local
+- Runs nightly via cron, zero interaction needed
+- Produces: daily logs, patterns, open tasks, weekly reports
+- Works with Claude Code, Cursor, Codex
+- MIT license, zero dependencies
+- macOS only (Linux/Windows coming)
+
+## How it's different from other AI memory tools
+- mem0/MemGPT remember what you *said* to the AI. Engram observes what you *did*.
+- CLAUDE.md is static rules you maintain. Engram is dynamic, self-writing memory.
+- Engram adds a new perception channel: behavioral data from OS-level activity.
+
+## Links
+- Source: https://github.com/lessthanno/engram-agent
+- Docs: https://github.com/lessthanno/engram-agent/blob/main/README.md
+- Website: https://lessthanno.github.io/engram-agent/

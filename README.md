@@ -405,6 +405,34 @@ Areas where help is welcome:
 
 ---
 
+## FAQ
+
+### How is Engram different from mem0?
+
+mem0 remembers what you told the AI. Engram observes what you *did* -- git commits, shell commands, browser tabs, app usage. Different data layer entirely. Many people use both.
+
+### Does Engram send data to the cloud?
+
+No. Everything runs locally on your machine. No accounts, no servers, no telemetry. Your data never leaves your computer.
+
+### Does it work without Claude?
+
+Yes. Without the Claude CLI, Engram still collects data and stores structured daily logs. Claude adds AI-powered synthesis (pattern detection, task extraction, behavioral insights).
+
+### What does Engram actually produce?
+
+Daily activity logs, open task lists, behavioral pattern analysis, weak spot identification, and weekly trend reports. All stored as plain Markdown in a local git repo.
+
+### Can I use Engram alongside CLAUDE.md?
+
+Yes. CLAUDE.md encodes static rules and conventions. Engram captures dynamic, evolving context about how you work. They complement each other.
+
+### What if I'm not a programmer?
+
+Engram still captures browser tabs, app usage, recent files, and AI sessions -- enough to build a useful daily profile regardless of your work.
+
+---
+
 ## License
 
 MIT
