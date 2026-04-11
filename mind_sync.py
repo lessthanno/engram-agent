@@ -167,6 +167,9 @@ def main():
 
     bootstrap()
 
+    # Validate config and warn about issues
+    cfg.validate_or_warn()
+
     full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.push])
 
     # Skip if already ran today (RunAtLoad guard) unless --force
@@ -245,6 +248,23 @@ def main():
 
         if full_run or args.push:
             git_push()
+
+        # macOS notification on first successful sync
+        first_run_marker = MEMORY_REPO / ".engram-first-run-done"
+        if full_run and not first_run_marker.exists():
+            try:
+                git = raw.get("git_activity", {})
+                sessions = raw.get("claude_sessions", {})
+                msg = (f"First sync complete! "
+                       f"{git.get('total_commits', 0)} commits, "
+                       f"{sessions.get('session_count', 0)} sessions collected.")
+                subprocess.run([
+                    "osascript", "-e",
+                    f'display notification "{msg}" with title "Engram Agent" sound name "Glass"'
+                ], capture_output=True, timeout=5)
+                first_run_marker.write_text(datetime.now().isoformat())
+            except Exception:
+                pass
 
         log.info(f"done {datetime.now().isoformat()}")
 

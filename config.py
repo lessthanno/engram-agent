@@ -151,3 +151,87 @@ def sensitive_patterns() -> list:
         r"secret[=:]\S+",
         r"ANTHROPIC_API_KEY=\S+",
     ])
+
+
+# ── Validation ──────────────────────────────────────────────────────────
+
+class ConfigError:
+    """A single validation finding."""
+    def __init__(self, level: str, key: str, message: str):
+        self.level = level  # "error" or "warning"
+        self.key = key
+        self.message = message
+
+    def __str__(self):
+        tag = "ERROR" if self.level == "error" else "WARN"
+        return f"[{tag}] {self.key}: {self.message}"
+
+
+def validate() -> list:
+    """Validate config and return list of ConfigError.
+    Empty list = all good."""
+    issues = []
+
+    # memory_repo must exist
+    repo = memory_repo()
+    if not repo.exists():
+        issues.append(ConfigError("error", "paths.memory_repo",
+            f"Directory does not exist: {repo}\n"
+            f"  Fix: run 'mkdir -p {repo}' or update ~/.mind/config.toml [paths] memory_repo"))
+    elif not (repo / "daily").exists():
+        issues.append(ConfigError("warning", "paths.memory_repo",
+            f"Missing expected subdirectories in {repo}\n"
+            f"  Fix: run 'bash scripts/install.sh' to create the directory structure"))
+
+    # git author email
+    email = git_author_email()
+    if not email:
+        issues.append(ConfigError("warning", "git.author_email",
+            "Not set — git collector will capture ALL commits, not just yours\n"
+            "  Fix: add author_email under [git] in ~/.mind/config.toml"))
+
+    # scan_roots — at least one should exist
+    roots = scan_roots()
+    existing_roots = [r for r in roots if r.exists()]
+    if not existing_roots:
+        issues.append(ConfigError("warning", "git.scan_roots",
+            f"None of the scan roots exist: {[str(r) for r in roots]}\n"
+            "  Fix: update [git] scan_roots in ~/.mind/config.toml to match your workspace layout"))
+
+    # API access — need at least one method
+    import shutil
+    has_cli = shutil.which("claude") is not None
+    has_key = bool(api_key())
+    if not has_cli and not has_key:
+        issues.append(ConfigError("warning", "api",
+            "No Claude CLI and no API key — synthesis will run in offline mode (limited output)\n"
+            "  Fix: install Claude CLI or set [api] key in ~/.mind/config.toml"))
+
+    # model name sanity check
+    m = model()
+    if m and not any(x in m for x in ["claude", "gpt", "gemini", "llama", "sonnet", "haiku", "opus"]):
+        issues.append(ConfigError("warning", "api.model",
+            f"Unrecognized model '{m}' — this may fail at synthesis time"))
+
+    # Config file exists at all
+    if not _CONFIG_PATH.exists():
+        issues.append(ConfigError("warning", "config.toml",
+            f"No config file found at {_CONFIG_PATH}\n"
+            "  Fix: run 'bash scripts/install.sh' or copy config.toml.example to ~/.mind/config.toml"))
+
+    return issues
+
+
+def validate_or_warn():
+    """Run validation and log any issues. Returns True if no errors."""
+    import logging
+    logger = logging.getLogger("mind-sync")
+    issues = validate()
+    errors = 0
+    for issue in issues:
+        if issue.level == "error":
+            logger.error(str(issue))
+            errors += 1
+        else:
+            logger.warning(str(issue))
+    return errors == 0

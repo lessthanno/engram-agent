@@ -25,12 +25,12 @@ echo "  This will set up:"
 echo "  1. A private memory repo (git)"
 echo "  2. Configuration file (~/.mind/config.toml)"
 echo "  3. Claude Code hooks (SessionStart, PreCompact, Stop)"
-echo "  4. Claude Code agent (memory-analyst)"
+echo "  4. Claude Code agent (@engram)"
 echo "  5. Daily LaunchAgent (23:45 auto-sync)"
 echo ""
 
 # ── Step 1: Memory repo ──────────────────────────────────────────────────────
-echo -e "${BOLD}[1/6] Memory Repository${NC}"
+echo -e "${BOLD}[1/7] Memory Repository${NC}"
 
 DEFAULT_MEMORY="$HOME/mind-memory"
 ask "Memory repo path [$DEFAULT_MEMORY]: "
@@ -62,7 +62,7 @@ ok "Directory structure ready"
 
 # ── Step 2: Configuration ────────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}[2/6] Configuration${NC}"
+echo -e "${BOLD}[2/7] Configuration${NC}"
 
 CONFIG_DIR="$HOME/.mind"
 CONFIG_FILE="$CONFIG_DIR/config.toml"
@@ -117,7 +117,7 @@ fi
 
 # ── Step 3: Python check ─────────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}[3/6] Dependencies${NC}"
+echo -e "${BOLD}[3/7] Dependencies${NC}"
 
 if command -v python3 &>/dev/null; then
     PY_VERSION=$(python3 --version 2>&1)
@@ -145,7 +145,7 @@ done
 
 # ── Step 4: Claude Code hooks ────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}[4/6] Claude Code Hooks${NC}"
+echo -e "${BOLD}[4/7] Claude Code Hooks${NC}"
 
 SETTINGS_LOCAL="$HOME/.claude/settings.local.json"
 ENGRAM_SCRIPTS="$SCRIPT_DIR/scripts"
@@ -191,16 +191,16 @@ fi
 
 # ── Step 5: Claude Code agent ────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}[5/6] Claude Code Agent${NC}"
+echo -e "${BOLD}[5/7] Claude Code Agent${NC}"
 
 AGENTS_DIR="$HOME/.claude/agents"
 mkdir -p "$AGENTS_DIR"
-cp "$SCRIPT_DIR/agents/memory-analyst.md" "$AGENTS_DIR/"
-ok "memory-analyst agent installed"
+cp "$SCRIPT_DIR/agents/engram.md" "$AGENTS_DIR/"
+ok "@engram agent installed"
 
 # ── Step 6: LaunchAgent ──────────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}[6/6] LaunchAgent (daily auto-sync at 23:45)${NC}"
+echo -e "${BOLD}[6/7] LaunchAgent (daily auto-sync at 23:45)${NC}"
 
 PLIST_SRC="$SCRIPT_DIR/scripts/com.engram-agent.plist"
 PLIST_DST="$HOME/Library/LaunchAgents/com.engram-agent.plist"
@@ -241,8 +241,106 @@ echo "  To push to GitHub (optional):"
 echo -e "    ${BLUE}cd $MEMORY_REPO${NC}"
 echo -e "    ${BLUE}gh repo create mind-memory --private --source=. --push${NC}"
 echo ""
-echo "  Restart Claude Code to activate the memory-analyst agent."
+echo "  Restart Claude Code to activate the @engram agent."
 echo ""
+
+# ── Step 7: Post-install verification ────────────────────────────────────────
+echo ""
+echo -e "${BOLD}[7/7] Verification${NC}"
+
+echo "  Running quick pipeline test..."
+VERIFY_OUTPUT=$(cd "$SCRIPT_DIR" && python3 -c "
+import json, sys
+sys.path.insert(0, '.')
+import config as cfg
+
+errors = []
+
+# 1. Config loads
+try:
+    repo = cfg.memory_repo()
+    if not repo.exists():
+        errors.append(f'Memory repo not found: {repo}')
+    else:
+        print(f'  memory_repo: {repo}')
+except Exception as e:
+    errors.append(f'Config error: {e}')
+
+# 2. Check directory structure
+from pathlib import Path
+required = ['daily', 'analysis', 'raw']
+for d in required:
+    p = repo / d
+    if p.exists():
+        print(f'  {d}/: OK')
+    else:
+        errors.append(f'Missing directory: {d}/')
+
+# 3. Try importing collectors
+collector_names = []
+try:
+    from collectors.git_activity import collect as c2
+    collector_names.append('git')
+except: errors.append('git collector import failed')
+try:
+    from collectors.claude_sessions import collect as c1
+    collector_names.append('claude')
+except: errors.append('claude collector import failed')
+try:
+    from collectors.app_usage import collect as c3
+    collector_names.append('app_usage')
+except: errors.append('app_usage collector import failed')
+try:
+    from collectors.system_ops import collect as c5
+    collector_names.append('system')
+except: errors.append('system collector import failed')
+print(f'  collectors: {len(collector_names)} loaded ({', '.join(collector_names)})')
+
+# 4. Quick git data test
+from datetime import date
+today = date.today().isoformat()
+try:
+    git_data = c2(today)
+    commits = git_data.get('total_commits', 0)
+    repos = git_data.get('repos_active', 0)
+    print(f'  git scan: {commits} commits today, {repos} repos active')
+except Exception as e:
+    errors.append(f'git scan failed: {e}')
+
+# 5. Check Claude CLI
+import shutil
+claude_bin = shutil.which('claude')
+if claude_bin:
+    print(f'  claude CLI: {claude_bin}')
+else:
+    print('  claude CLI: not found (will use API fallback)')
+
+# 6. Check API key
+key = cfg.api_key()
+if key:
+    print(f'  API key: configured ({key[:8]}...)')
+elif claude_bin:
+    print('  API key: not set (using claude CLI)')
+else:
+    print('  API key: not set (offline mode — synthesis will be limited)')
+
+if errors:
+    print()
+    for e in errors:
+        print(f'  ERROR: {e}')
+    sys.exit(1)
+else:
+    print()
+    print('  All checks passed.')
+" 2>&1)
+
+echo "$VERIFY_OUTPUT"
+
+if [ $? -eq 0 ]; then
+    ok "Verification passed"
+else
+    warn "Some checks failed (see above). Engram will still work with reduced functionality."
+fi
 
 # ── Generate uninstall script ────────────────────────────────────────────────
 cat > "$SCRIPT_DIR/scripts/uninstall.sh" << UNINSTALL
@@ -250,7 +348,8 @@ cat > "$SCRIPT_DIR/scripts/uninstall.sh" << UNINSTALL
 # Engram Agent — Uninstall
 launchctl unload "$PLIST_DST" 2>/dev/null
 rm -f "$PLIST_DST"
-rm -f "$AGENTS_DIR/memory-analyst.md"
+rm -f "$AGENTS_DIR/engram.md"
+rm -f "$AGENTS_DIR/memory-analyst.md"  # cleanup legacy name
 echo "Uninstalled. Your memory repo at $MEMORY_REPO is preserved."
 echo "To remove hooks, edit $SETTINGS_LOCAL and delete the hooks section."
 UNINSTALL

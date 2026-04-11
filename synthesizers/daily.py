@@ -128,12 +128,10 @@ def _safe_truncate(data: dict, max_chars: int) -> str:
     # Final fallback: hard truncate at a safe boundary
     result = result[:max_chars]
     # Find last complete line
-    last_newline = result.rfind("
-")
+    last_newline = result.rfind("\n")
     if last_newline > max_chars * 0.5:
         result = result[:last_newline]
-    return result + '
-  "...": "truncated"'
+    return result + '\n  "...": "truncated"'
 
 
 def _trim_data(data, max_chars: int):
@@ -287,9 +285,7 @@ def _parse_response(response: str, raw: dict, existing: dict) -> dict:
 
     # Try extracting JSON from markdown fences
     if parsed is None:
-        m = re.search(r"```(?:json)?\s*
-(\{.*?\})\s*
-```", clean, re.DOTALL)
+        m = re.search(r"```(?:json)?\s*\n(\{.*?\})\s*\n```", clean, re.DOTALL)
         if m:
             try:
                 parsed = json.loads(m.group(1))
@@ -317,10 +313,7 @@ def _parse_response(response: str, raw: dict, existing: dict) -> dict:
         }
 
     date_str = raw.get("date", TODAY)
-    header = f"
-## {date_str}
-
-"
+    header = f"\n## {date_str}\n\n"
 
     return {
         "daily_log": _build_daily_log(parsed, raw),
@@ -349,27 +342,18 @@ def _prepend_section(existing_content: str, new_content: str,
     if not new_content.strip():
         return existing_content  # no update, keep as-is
 
-    new_section = f"{header}{new_content}
-
----
-"
+    new_section = f"{header}{new_content}\n\n---\n"
 
     if not existing_content.strip():
-        return f"# {title}
-{new_section}"
+        return f"# {title}\n{new_section}"
 
     # Insert after the first H1 heading line
-    lines = existing_content.split("
-", 1)
+    lines = existing_content.split("\n", 1)
     if lines[0].startswith("# "):
         rest = lines[1] if len(lines) > 1 else ""
-        return f"{lines[0]}
-{new_section}
-{rest}"
+        return f"{lines[0]}\n{new_section}\n{rest}"
 
-    return f"# {title}
-{new_section}
-{existing_content}"
+    return f"# {title}\n{new_section}\n{existing_content}"
 
 
 def _build_daily_log(parsed: dict, raw: dict) -> str:
@@ -393,37 +377,111 @@ keystrokes: {kb.get('total_keystrokes', 'n/a')}
 
 
 def _offline_synthesis(raw: dict, analysis_dir_or_existing) -> dict:
-    """Fallback when no API key or API failure."""
+    """Fallback when no API available. Performs local heuristic analysis."""
     date_str = raw.get("date", TODAY)
     git = raw.get("git_activity", {})
     sessions = raw.get("claude_sessions", {})
     app = raw.get("app_usage", {})
+    kb = raw.get("input_habits", {}).get("keyboard", {})
+    codex = raw.get("codex_sessions", {})
+    cursor = raw.get("cursor_sessions", {})
+
+    commits = git.get("total_commits", 0)
+    repos_active = git.get("repos_active", 0)
+    messages = git.get("commit_messages", [])
+    session_count = sessions.get("session_count", 0)
+    codex_count = codex.get("session_count", 0) if isinstance(codex, dict) else 0
+    cursor_count = cursor.get("session_count", 0) if isinstance(cursor, dict) else 0
+    topics = sessions.get("topics", [])
+    top_apps = [a.get("app", "") for a in app.get("top_apps", [])[:8]]
+    focus_score = app.get("focus_score", "n/a")
+
+    # -- Local heuristic: categorize commits --
+    categories = {"feat": [], "fix": [], "refactor": [], "docs": [], "chore": [], "other": []}
+    for msg in messages[:30]:
+        lower = msg.lower()
+        if any(k in lower for k in ["feat", "add", "implement", "new"]):
+            categories["feat"].append(msg)
+        elif any(k in lower for k in ["fix", "bug", "patch", "hotfix"]):
+            categories["fix"].append(msg)
+        elif any(k in lower for k in ["refactor", "rename", "move", "clean"]):
+            categories["refactor"].append(msg)
+        elif any(k in lower for k in ["doc", "readme", "comment"]):
+            categories["docs"].append(msg)
+        elif any(k in lower for k in ["chore", "deps", "bump", "ci", "config"]):
+            categories["chore"].append(msg)
+        else:
+            categories["other"].append(msg)
+
+    category_summary = ""
+    for cat, msgs in categories.items():
+        if msgs:
+            category_summary += f"- **{cat}** ({len(msgs)}): {', '.join(msgs[:3])}\n"
+
+    # -- Local heuristic: extract potential tasks from commit messages --
+    tasks = []
+    for msg in messages[:20]:
+        lower = msg.lower()
+        if any(k in lower for k in ["wip:", "wip ", "temp:", "hack:", "fixme", "partial:", "todo:"]):
+            tasks.append(f"- [ ] Follow up: {msg}")
+    for t in topics[:5]:
+        if any(k in t.lower() for k in ["debug", "investigate", "fix", "broken"]):
+            tasks.append(f"- [ ] Resolve: {t}")
+
+    tasks_section = "\n".join(tasks[:10]) if tasks else "No open tasks detected from today's activity."
+
+    # -- Local heuristic: productivity estimate --
+    total_ai_sessions = session_count + codex_count + cursor_count
+    if commits >= 10 and total_ai_sessions >= 3:
+        productivity = "High output day — heavy coding with AI assistance"
+    elif commits >= 5:
+        productivity = "Moderate coding output"
+    elif total_ai_sessions >= 5 and commits < 3:
+        productivity = "Research/exploration heavy — lots of AI sessions, few commits"
+    elif commits == 0 and total_ai_sessions == 0:
+        productivity = "Light activity or day off"
+    else:
+        productivity = "Mixed activity"
 
     log_text = f"""---
 date: {date_str}
-commits: {git.get('total_commits', 0)}
-claude_sessions: {sessions.get('session_count', 0)}
+commits: {commits}
+repos_active: {repos_active}
+claude_sessions: {session_count}
+focus_score: {focus_score}
+keystrokes: {kb.get('total_keystrokes', 'n/a')}
+mode: offline
 ---
 
-# {date_str} — Daily Log (offline mode)
+# {date_str} — Daily Log (offline analysis)
 
-No API key available. Raw data collected but not synthesized.
+*Synthesized locally without API — heuristic analysis only.*
 
-## Git activity
-Repos active: {git.get('repos_active', 0)}
-Commits: {git.get('total_commits', 0)}
-Velocity: {git.get('velocity', 'unknown')}
-Messages: {', '.join(git.get('commit_messages', [])[:10])}
+## Summary
+{productivity}. {commits} commits across {repos_active} repos, {total_ai_sessions} AI sessions (Claude: {session_count}, Codex: {codex_count}, Cursor: {cursor_count}).
 
-## Claude sessions
-Sessions: {sessions.get('session_count', 0)}
-Topics: {', '.join(sessions.get('topics', [])[:10])}
+## Git Activity by Category
+{category_summary if category_summary else "No commits today."}
 
-## App usage
-Top apps: {', '.join(a.get('app','') for a in app.get('top_apps', [])[:5])}
-Focus score: {app.get('focus_score', 'n/a')}
+## AI Sessions
+Topics discussed: {', '.join(topics[:10]) if topics else 'none detected'}
+
+## App Usage
+Top apps: {', '.join(top_apps) if top_apps else 'none detected'}
+Focus score: {focus_score}
+
+## Open Items
+{tasks_section}
 """
+
+    # Build tasks update if we found any
+    tasks_update = ""
+    if tasks:
+        tasks_update = f"# Open Tasks\n\n## {date_str}\n\n" + "\n".join(tasks[:10])
+
     return {
         "daily_log": log_text,
-        "analysis_updates": {}
+        "analysis_updates": {
+            "tasks.md": tasks_update,
+        } if tasks_update else {}
     }

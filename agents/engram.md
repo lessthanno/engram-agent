@@ -1,5 +1,5 @@
 ---
-name: memory-analyst
+name: engram
 description: >
   Reads your personal memory repo and answers questions about past decisions,
   weaknesses, patterns, and open tasks. Use when referencing past context,
