@@ -8,50 +8,35 @@
 <meta name="keywords" content="AI memory, Claude Code, developer tools, behavioral memory, personal knowledge management, local AI, productivity, self-distillation">
 <meta name="author" content="lessthanno">
 <link rel="canonical" href="https://lessthanno.github.io/engram-agent/">
-
-<!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://lessthanno.github.io/engram-agent/">
 <meta property="og:title" content="Engram — Your AI forgets you every night">
 <meta property="og:description" content="Persistent behavioral memory for AI tools. Observes how you work, distills it overnight, wakes your AI up knowing you. 100% local.">
 <meta property="og:site_name" content="Engram">
-
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Engram — Your AI forgets you every night">
 <meta name="twitter:description" content="Persistent behavioral memory for AI tools. Observes how you work, distills it overnight. 100% local. Zero config.">
-
-<!-- Structured Data -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Engram",
-  "description": "Persistent behavioral memory for AI tools. Observes how you actually work and distills it into memory your AI reads every morning.",
-  "url": "https://github.com/lessthanno/engram-agent",
-  "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "macOS",
-  "license": "https://opensource.org/licenses/MIT",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "author": { "@type": "Person", "name": "lessthanno", "url": "https://github.com/lessthanno" }
-}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Engram","description":"Persistent behavioral memory for AI tools.","url":"https://github.com/lessthanno/engram-agent","applicationCategory":"DeveloperApplication","operatingSystem":"macOS","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"lessthanno","url":"https://github.com/lessthanno"}}
 </script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #111;
-  --border: #1e1e1e;
-  --text: #ededed;
-  --text-2: #a0a0a0;
-  --text-3: #555;
-  --accent: #ededed;
-  --green: #00cc88;
+  --bg: #09090b;
+  --surface: #111113;
+  --surface-2: #18181b;
+  --border: #27272a;
+  --border-subtle: #1c1c1f;
+  --text: #fafafa;
+  --text-2: #a1a1aa;
+  --text-3: #52525b;
+  --accent: #22c55e;
+  --accent-dim: rgba(34,197,94,.08);
+  --accent-glow: rgba(34,197,94,.15);
   --mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
   --sans: 'Inter', -apple-system, system-ui, sans-serif;
 }
@@ -64,371 +49,329 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-::selection { background: rgba(255,255,255,.12); }
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
 
+::selection { background: rgba(34,197,94,.2); }
 a { color: inherit; text-decoration: none; }
 
 /* ── Nav ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-  border-bottom: 1px solid var(--border);
-  background: rgba(10,10,10,.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(9,9,11,.8);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
 }
 
 .nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  max-width: 1100px; margin: 0 auto; padding: 0 32px;
+  height: 52px; display: flex; align-items: center; justify-content: space-between;
 }
 
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
+.nav-left { display: flex; align-items: center; gap: 28px; }
 
 .logo {
-  font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
+  font-family: var(--mono); font-size: 15px; font-weight: 500;
+  letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px;
 }
 
-.nav-link {
-  font-size: 13px;
-  color: var(--text-3);
-  transition: color .15s;
+.logo-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow), 0 0 20px var(--accent-glow);
+  animation: pulse 3s ease-in-out infinite;
 }
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+
+.nav-link { font-size: 13px; color: var(--text-3); transition: color .15s; }
 .nav-link:hover { color: var(--text-2); }
 
+.nav-right { display: flex; align-items: center; gap: 16px; }
+
+.nav-stars {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--border-subtle);
+  padding: 4px 10px; border-radius: 6px; transition: border-color .15s;
+}
+.nav-stars:hover { border-color: var(--border); }
+.nav-stars svg { width: 14px; height: 14px; }
+
 .nav-gh {
-  font-size: 13px;
-  color: var(--text-2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: color .15s;
+  font-size: 13px; color: var(--text-2);
+  display: flex; align-items: center; gap: 6px; transition: color .15s;
 }
 .nav-gh:hover { color: var(--text); }
 .nav-gh svg { width: 16px; height: 16px; }
 
 /* ── Hero ── */
+.hero-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient glow */
+.hero-glow {
+  position: absolute;
+  top: -200px; left: 50%; transform: translateX(-50%);
+  width: 900px; height: 600px;
+  background: radial-gradient(ellipse at center,
+    rgba(34,197,94,.07) 0%,
+    rgba(34,197,94,.03) 30%,
+    transparent 70%);
+  pointer-events: none;
+}
+
+/* Grid lines */
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 70%);
+  opacity: .4;
+  pointer-events: none;
+}
+
 .hero {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 160px 32px 120px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: center;
+  position: relative;
+  max-width: 1100px; margin: 0 auto;
+  padding: 160px 32px 100px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 64px; align-items: center;
 }
 
 .hero-text h1 {
-  font-size: 52px;
-  font-weight: 700;
-  letter-spacing: -2.5px;
-  line-height: 1;
-  margin-bottom: 24px;
+  font-size: 54px; font-weight: 800;
+  letter-spacing: -2.5px; line-height: 1.02;
+  margin-bottom: 20px;
+}
+
+.hero-text h1 span {
+  background: linear-gradient(135deg, var(--accent) 0%, #4ade80 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
 .hero-text p {
-  font-size: 16px;
-  line-height: 1.65;
-  color: var(--text-2);
-  max-width: 420px;
-  margin-bottom: 40px;
+  font-size: 16px; line-height: 1.65; color: var(--text-2);
+  max-width: 420px; margin-bottom: 36px;
 }
 
-.hero-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.hero-actions { display: flex; align-items: center; gap: 12px; }
 
 .btn-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  background: var(--text);
-  color: var(--bg);
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 6px;
-  transition: opacity .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 22px; background: var(--text); color: var(--bg);
+  font-size: 13px; font-weight: 600; border-radius: 8px;
+  transition: transform .15s, box-shadow .15s;
 }
-.btn-main:hover { opacity: .85; }
+.btn-main:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,255,255,.1); }
 
 .btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  background: transparent;
-  color: var(--text-2);
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 22px; background: transparent; color: var(--text-2);
+  font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 8px;
   transition: border-color .15s, color .15s;
 }
-.btn-ghost:hover { border-color: #333; color: var(--text); }
+.btn-ghost:hover { border-color: var(--text-3); color: var(--text); }
 
 /* Terminal */
 .terminal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 1.75;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  font-family: var(--mono); font-size: 13px; line-height: 1.75;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.03) inset;
 }
 
 .term-bar {
-  height: 36px;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  gap: 6px;
-  border-bottom: 1px solid var(--border);
+  height: 40px; display: flex; align-items: center;
+  padding: 0 14px; gap: 7px;
+  background: var(--surface-2); border-bottom: 1px solid var(--border-subtle);
 }
 
-.term-dot { width: 10px; height: 10px; border-radius: 50%; background: #282828; }
+.term-dot { width: 11px; height: 11px; border-radius: 50%; }
+.term-dot:nth-child(1) { background: #ff5f57; }
+.term-dot:nth-child(2) { background: #febc2e; }
+.term-dot:nth-child(3) { background: #28c840; }
 
-.term-body { padding: 20px; min-height: 220px; }
-.term-prompt { color: var(--text-3); }
+.term-body { padding: 20px 20px 24px; min-height: 220px; transition: opacity .3s ease; }
+.term-prompt { color: var(--accent); }
 .term-input { color: var(--text); }
-.term-output { color: var(--text-2); margin-top: 6px; }
-.term-tag { color: var(--text-3); font-size: 11px; margin-top: 14px; }
-.term-hl { color: var(--green); }
+.term-output { color: var(--text-2); margin-top: 8px; }
+.term-tag { color: var(--text-3); font-size: 11px; margin-top: 16px; display: flex; align-items: center; gap: 6px; }
+.term-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.term-hl { color: var(--accent); }
 
-/* ── Divider ── */
-.divider {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
-}
-.divider-line { border-top: 1px solid var(--border); }
+/* ── Section ── */
+.section { max-width: 1100px; margin: 0 auto; padding: 100px 32px; position: relative; }
 
-/* ── Section common ── */
-.section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 100px 32px;
-}
+.divider { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+.divider-line { border-top: 1px solid var(--border-subtle); }
 
 .section-eyebrow {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 20px;
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
 }
 
 .section-heading {
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: -1.5px;
-  line-height: 1.1;
-  margin-bottom: 16px;
-  max-width: 500px;
+  font-size: 36px; font-weight: 700;
+  letter-spacing: -1.5px; line-height: 1.1;
+  margin-bottom: 12px; max-width: 480px;
 }
 
 .section-sub {
-  font-size: 15px;
-  color: var(--text-2);
-  line-height: 1.6;
-  max-width: 480px;
-  margin-bottom: 56px;
+  font-size: 15px; color: var(--text-2);
+  line-height: 1.6; max-width: 460px; margin-bottom: 48px;
 }
 
-/* ── How it works ── */
+/* ── Steps ── */
 .steps {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border-radius: 10px;
-  overflow: hidden;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border-subtle);
+  border-radius: 12px; overflow: hidden;
 }
 
-.step {
-  background: var(--surface);
-  padding: 32px 24px;
+.step { background: var(--surface); padding: 32px 24px; position: relative; }
+
+.step::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+  opacity: 0; transition: opacity .3s;
 }
+.step:hover::before { opacity: 1; }
 
 .step-num {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-3);
-  margin-bottom: 20px;
+  font-family: var(--mono); font-size: 32px; font-weight: 700;
+  color: var(--border); margin-bottom: 20px; line-height: 1;
 }
 
-.step h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  letter-spacing: -0.3px;
-}
-
-.step p {
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.55;
-}
+.step h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.3px; }
+.step p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
 
 /* ── Sources ── */
 .sources-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border-radius: 10px;
-  overflow: hidden;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border-subtle);
+  border-radius: 12px; overflow: hidden;
 }
 
 .source {
-  background: var(--surface);
-  padding: 24px;
+  background: var(--surface); padding: 24px;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: background .2s;
+}
+.source:hover { background: var(--surface-2); }
+
+.source-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--accent-dim); border: 1px solid rgba(34,197,94,.12);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--accent);
 }
 
-.source h4 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  letter-spacing: -0.2px;
-}
+.source-icon svg { width: 16px; height: 16px; }
 
-.source p {
-  font-size: 13px;
-  color: var(--text-3);
-  line-height: 1.45;
-}
+.source-text h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; letter-spacing: -0.2px; }
+.source-text p { font-size: 13px; color: var(--text-3); line-height: 1.4; }
 
-/* ── Comparison ── */
-.compare-split {
-  display: grid;
-  grid-template-columns: 5fr 7fr;
-  gap: 80px;
-  align-items: start;
-}
+/* ── Compare ── */
+.compare-split { display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; }
 
-.compare-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.compare-table { width: 100%; border-collapse: collapse; }
 
 .compare-table th {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: left;
-  padding: 0 0 12px;
-  border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  color: var(--text-3); text-transform: uppercase; letter-spacing: .5px;
+  text-align: left; padding: 0 0 12px; border-bottom: 1px solid var(--border);
 }
 
 .compare-table td {
-  font-size: 13px;
-  color: var(--text-2);
-  padding: 10px 16px 10px 0;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
+  font-size: 13px; color: var(--text-2);
+  padding: 10px 16px 10px 0; border-bottom: 1px solid var(--border-subtle); vertical-align: top;
 }
 
-.compare-table td:first-child {
-  color: var(--text);
-  font-weight: 500;
-  white-space: nowrap;
-}
+.compare-table td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
 
-.compare-table .yes { color: var(--text); }
+.compare-table .yes { color: var(--accent); font-weight: 500; }
 .compare-table .no { color: var(--text-3); }
 
+/* ── Logos ── */
+.tools-strip {
+  display: flex; gap: 32px; align-items: center; justify-content: center;
+  padding: 48px 32px;
+  max-width: 1100px; margin: 0 auto;
+}
+
+.tool-badge {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-3);
+  padding: 8px 16px; border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  transition: border-color .2s, color .2s;
+}
+.tool-badge:hover { border-color: var(--border); color: var(--text-2); }
+.tool-badge .status { width: 6px; height: 6px; border-radius: 50%; }
+.tool-badge .status.full { background: var(--accent); }
+.tool-badge .status.partial { background: var(--text-3); }
+
 /* ── Install ── */
-.install-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 120px 32px;
-}
+.install-section { max-width: 1100px; margin: 0 auto; padding: 120px 32px; }
+.install-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
 
-.install-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: center;
-}
-
-.install-text h2 {
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: -1.5px;
-  line-height: 1.1;
-  margin-bottom: 16px;
-}
-
-.install-text p {
-  font-size: 15px;
-  color: var(--text-2);
-  line-height: 1.6;
-  margin-bottom: 32px;
-  max-width: 380px;
-}
+.install-text h2 { font-size: 36px; font-weight: 700; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 12px; }
+.install-text p { font-size: 15px; color: var(--text-2); line-height: 1.6; margin-bottom: 28px; max-width: 380px; }
 
 .install-code {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 24px;
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 2;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px 28px;
+  font-family: var(--mono); font-size: 13px; line-height: 2;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  position: relative;
 }
 
 .install-code .c { color: var(--text-3); }
 .install-code .cmd { color: var(--text); }
 
+.copy-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: var(--surface-2); border: 1px solid var(--border-subtle);
+  color: var(--text-3); font-size: 11px; padding: 4px 10px;
+  border-radius: 6px; cursor: pointer; transition: all .15s;
+  font-family: var(--sans);
+}
+.copy-btn:hover { color: var(--text-2); border-color: var(--border); }
+
 /* ── Footer ── */
 footer {
-  border-top: 1px solid var(--border);
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-top: 1px solid var(--border-subtle);
+  max-width: 1100px; margin: 0 auto; padding: 32px;
+  display: flex; justify-content: space-between; align-items: center;
 }
 
-footer p {
-  font-size: 12px;
-  color: var(--text-3);
-}
-
+footer p { font-size: 12px; color: var(--text-3); }
 footer a { color: var(--text-3); transition: color .15s; }
 footer a:hover { color: var(--text-2); }
-
 .footer-links { display: flex; gap: 20px; }
 .footer-links a { font-size: 12px; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .hero {
-    grid-template-columns: 1fr;
-    gap: 48px;
-    padding: 120px 24px 80px;
-  }
+  .hero { grid-template-columns: 1fr; gap: 48px; padding: 120px 24px 80px; }
   .hero-text h1 { font-size: 40px; }
   .steps { grid-template-columns: 1fr 1fr; }
   .sources-list { grid-template-columns: 1fr 1fr; }
@@ -436,6 +379,7 @@ footer a:hover { color: var(--text-2); }
   .install-inner { grid-template-columns: 1fr; gap: 40px; }
   .section { padding: 72px 24px; }
   .install-section { padding: 80px 24px; }
+  .tools-strip { flex-wrap: wrap; gap: 12px; }
 }
 
 @media (max-width: 540px) {
@@ -444,20 +388,17 @@ footer a:hover { color: var(--text-2); }
   .sources-list { grid-template-columns: 1fr; }
   .hero-actions { flex-direction: column; align-items: flex-start; }
   .nav-link { display: none; }
+  .nav-stars { display: none; }
   .section-heading { font-size: 28px; }
   footer { flex-direction: column; gap: 16px; text-align: center; }
 }
 
 /* ── Scroll reveal ── */
 [data-reveal] {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
 }
-[data-reveal].visible {
-  opacity: 1;
-  transform: none;
-}
+[data-reveal].visible { opacity: 1; transform: none; }
 </style>
 </head>
 <body>
@@ -465,37 +406,60 @@ footer a:hover { color: var(--text-2); }
 <nav>
   <div class="nav-inner">
     <div class="nav-left">
-      <a href="#" class="logo">engram</a>
+      <a href="#" class="logo"><span class="logo-dot"></span>engram</a>
       <a href="#how" class="nav-link">How it works</a>
+      <a href="#sources" class="nav-link">Sources</a>
       <a href="#compare" class="nav-link">Compare</a>
     </div>
-    <a href="https://github.com/lessthanno/engram-agent" class="nav-gh" target="_blank" rel="noopener">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      GitHub
-    </a>
+    <div class="nav-right">
+      <a href="https://github.com/lessthanno/engram-agent" class="nav-stars" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+        <span id="star-count">Star</span>
+      </a>
+      <a href="https://github.com/lessthanno/engram-agent" class="nav-gh" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      </a>
+    </div>
   </div>
 </nav>
 
-<section class="hero">
-  <div class="hero-text" data-reveal>
-    <h1>Your AI forgets<br>you every night</h1>
-    <p>Engram observes how you actually work — git, shell, browser, apps — and distills it into memory your AI reads every morning. Nothing to configure. Runs overnight.</p>
-    <div class="hero-actions">
-      <a href="#install" class="btn-main">Get started</a>
-      <a href="https://github.com/lessthanno/engram-agent" class="btn-ghost" target="_blank" rel="noopener">View source</a>
+<div class="hero-wrapper">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+
+  <section class="hero">
+    <div class="hero-text" data-reveal>
+      <h1>Your AI <span>forgets you</span><br>every night</h1>
+      <p>Engram observes how you actually work — git, shell, browser, apps — and distills it into memory your AI reads every morning. Nothing to configure.</p>
+      <div class="hero-actions">
+        <a href="#install" class="btn-main">Get started</a>
+        <a href="https://github.com/lessthanno/engram-agent" class="btn-ghost" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View source
+        </a>
+      </div>
     </div>
-  </div>
-  <div class="terminal" data-reveal>
-    <div class="term-bar">
-      <div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div>
+
+    <div class="terminal" data-reveal>
+      <div class="term-bar">
+        <div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div>
+      </div>
+      <div class="term-body" id="demo">
+        <div><span class="term-prompt">~</span> <span class="term-input">help me finish the Q2 report</span></div>
+        <div class="term-output">You started this last Thursday. Revenue section is done.<br>The churn analysis is incomplete — you noted the data<br>source was unreliable. Pulling from the updated dashboard.</div>
+        <div class="term-tag"><span class="term-hl">engram</span> context loaded from 3 days of activity</div>
+      </div>
     </div>
-    <div class="term-body" id="demo">
-      <div><span class="term-prompt">~</span> <span class="term-input">help me finish the Q2 report</span></div>
-      <div class="term-output">You started this last Thursday. Revenue section is done.<br>The churn analysis is incomplete — you noted the data<br>source was unreliable. Pulling from the updated dashboard.</div>
-      <div class="term-tag"><span class="term-hl">engram</span> context loaded from 3 days of activity</div>
-    </div>
-  </div>
-</section>
+  </section>
+</div>
+
+<!-- Tool support strip -->
+<div class="tools-strip" data-reveal>
+  <div class="tool-badge"><span class="status full"></span> Claude Code</div>
+  <div class="tool-badge"><span class="status partial"></span> Cursor</div>
+  <div class="tool-badge"><span class="status partial"></span> Codex</div>
+  <div class="tool-badge" style="border:none;color:var(--text-3);font-size:12px">100% local &middot; zero deps &middot; MIT</div>
+</div>
 
 <div class="divider"><div class="divider-line"></div></div>
 
@@ -504,30 +468,13 @@ footer a:hover { color: var(--text-2); }
   <div data-reveal>
     <div class="section-eyebrow">How it works</div>
     <div class="section-heading">A journal that writes itself</div>
-    <div class="section-sub">You work. Engram watches. Claude distills. Your AI wakes up knowing you. Every day, the loop tightens.</div>
+    <div class="section-sub">You work. Engram watches. Claude distills. Your AI wakes up knowing you.</div>
   </div>
-
   <div class="steps" data-reveal>
-    <div class="step">
-      <div class="step-num">01</div>
-      <h3>Work normally</h3>
-      <p>Code, browse, chat with AI. Change nothing about your workflow.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <h3>Silent collection</h3>
-      <p>7 data sources captured locally. Passwords and secrets auto-scrubbed.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <h3>Nightly synthesis</h3>
-      <p>At 23:45, Claude reads raw data and produces a structured briefing.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <h3>Morning context</h3>
-      <p>Your AI tools read the briefing automatically. They remember.</p>
-    </div>
+    <div class="step"><div class="step-num">01</div><h3>Work normally</h3><p>Code, browse, chat with AI. Change nothing about your workflow.</p></div>
+    <div class="step"><div class="step-num">02</div><h3>Silent collection</h3><p>7 data sources captured locally. Passwords and secrets auto-scrubbed.</p></div>
+    <div class="step"><div class="step-num">03</div><h3>Nightly synthesis</h3><p>At 23:45, Claude reads raw data and produces a structured briefing.</p></div>
+    <div class="step"><div class="step-num">04</div><h3>Morning context</h3><p>Your AI tools read the briefing automatically. They remember you.</p></div>
   </div>
 </section>
 
@@ -540,15 +487,35 @@ footer a:hover { color: var(--text-2); }
     <div class="section-heading">7 channels, all local</div>
     <div class="section-sub">Everything stays on your machine. No cloud, no accounts, no telemetry.</div>
   </div>
-
   <div class="sources-list" data-reveal>
-    <div class="source"><h4>AI sessions</h4><p>Claude, Cursor, Codex conversations</p></div>
-    <div class="source"><h4>Git activity</h4><p>Commits, diffs, branch frequency</p></div>
-    <div class="source"><h4>Shell history</h4><p>Commands ran, secrets redacted</p></div>
-    <div class="source"><h4>Browser tabs</h4><p>What you were researching</p></div>
-    <div class="source"><h4>App usage</h4><p>Time spent per application</p></div>
-    <div class="source"><h4>Recent files</h4><p>Documents you touched today</p></div>
-    <div class="source"><h4>System state</h4><p>Processes, active projects</p></div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+      <div class="source-text"><h4>AI sessions</h4><p>Claude, Cursor, Codex conversations</p></div>
+    </div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 012 2v7"/><path d="M6 9v12"/></svg></div>
+      <div class="source-text"><h4>Git activity</h4><p>Commits, diffs, velocity</p></div>
+    </div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+      <div class="source-text"><h4>Shell history</h4><p>Commands, secrets redacted</p></div>
+    </div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+      <div class="source-text"><h4>Browser tabs</h4><p>What you were researching</p></div>
+    </div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="source-text"><h4>App usage</h4><p>Time spent per application</p></div>
+    </div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="source-text"><h4>Recent files</h4><p>Documents you touched</p></div>
+    </div>
+    <div class="source">
+      <div class="source-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+      <div class="source-text"><h4>System state</h4><p>Processes, active projects</p></div>
+    </div>
   </div>
 </section>
 
@@ -560,13 +527,11 @@ footer a:hover { color: var(--text-2); }
     <div data-reveal>
       <div class="section-eyebrow">Compare</div>
       <div class="section-heading">Not another memory plugin</div>
-      <div class="section-sub" style="margin-bottom:0">Most AI memory tools remember what you <em>said</em>. Engram observes what you <em>did</em>. Different data layer.</div>
+      <div class="section-sub" style="margin-bottom:0">Most AI memory tools remember what you <em>said</em>. Engram observes what you <em>did</em>.</div>
     </div>
     <div data-reveal>
       <table class="compare-table">
-        <thead>
-          <tr><th></th><th>Engram</th><th>mem0</th><th>CLAUDE.md</th></tr>
-        </thead>
+        <thead><tr><th></th><th>Engram</th><th>mem0</th><th>CLAUDE.md</th></tr></thead>
         <tbody>
           <tr><td>Captures behavior</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
           <tr><td>Fully automatic</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
@@ -591,6 +556,7 @@ footer a:hover { color: var(--text-2); }
       <a href="https://github.com/lessthanno/engram-agent" class="btn-main">Read the docs</a>
     </div>
     <div class="install-code" data-reveal>
+      <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
       <span class="c"># clone</span><br>
       <span class="cmd">git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent</span><br><br>
       <span class="c"># enter</span><br>
@@ -614,54 +580,47 @@ footer a:hover { color: var(--text-2); }
 // Scroll reveal
 const ro = new IntersectionObserver(
   entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } }),
-  { threshold: .15 }
+  { threshold: .1 }
 );
 document.querySelectorAll('[data-reveal]').forEach(el => ro.observe(el));
 
 // Terminal rotation
 const demos = [
-  {
-    input: 'help me finish the Q2 report',
-    output: 'You started this last Thursday. Revenue section is done.<br>The churn analysis is incomplete \u2014 you noted the data<br>source was unreliable. Pulling from the updated dashboard.',
-    tag: 'context loaded from 3 days of activity'
-  },
-  {
-    input: 'the deployment keeps failing with that auth error',
-    output: 'You hit this exact issue on March 15th. Root cause was<br>a misconfigured env variable. Fix was in deploy.yaml<br>line 47 \u2014 check if it was reverted.',
-    tag: 'matched from 27 days of history'
-  },
-  {
-    input: '',
-    output: 'You context-switched between 8 projects on Tuesday.<br>On days with \u22643 switches, your output is 2.4x higher.<br>Last 3 high-output days started with 2h focused work.',
-    tag: 'weekly pattern detected',
-    isPattern: true
-  }
+  { input: 'help me finish the Q2 report', output: 'You started this last Thursday. Revenue section is done.<br>The churn analysis is incomplete \u2014 you noted the data<br>source was unreliable. Pulling from the updated dashboard.', tag: 'context loaded from 3 days of activity' },
+  { input: 'the deployment keeps failing with that auth error', output: 'You hit this exact issue on March 15th. Root cause was<br>a misconfigured env variable. Fix was in deploy.yaml<br>line 47 \u2014 check if it was reverted.', tag: 'matched from 27 days of history' },
+  { input: '', output: 'You context-switched between 8 projects on Tuesday.<br>On days with \u22643 switches, your output is 2.4x higher.<br>Last 3 high-output days started with 2h focused work.', tag: 'weekly pattern detected', isPattern: true }
 ];
 
 let di = 0;
+const el = document.getElementById('demo');
 setInterval(() => {
   di = (di + 1) % demos.length;
   const d = demos[di];
-  const el = document.getElementById('demo');
   el.style.opacity = '0';
   setTimeout(() => {
     el.innerHTML = d.isPattern
       ? `<div class="term-output">${d.output}</div><div class="term-tag"><span class="term-hl">engram</span> ${d.tag}</div>`
       : `<div><span class="term-prompt">~</span> <span class="term-input">${d.input}</span></div><div class="term-output">${d.output}</div><div class="term-tag"><span class="term-hl">engram</span> ${d.tag}</div>`;
     el.style.opacity = '1';
-  }, 250);
+  }, 300);
 }, 5000);
 
-const tb = document.querySelector('.term-body');
-tb.style.transition = 'opacity .25s ease';
+// Copy install
+function copyInstall(btn) {
+  navigator.clipboard.writeText('git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent && cd ~/engram-agent && bash scripts/install.sh');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+
+// Fetch star count
+fetch('https://api.github.com/repos/lessthanno/engram-agent')
+  .then(r => r.json())
+  .then(d => { if (d.stargazers_count) document.getElementById('star-count').textContent = d.stargazers_count; })
+  .catch(() => {});
 
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    const t = document.querySelector(a.getAttribute('href'));
-    if (t) t.scrollIntoView({ behavior: 'smooth' });
-  });
+  a.addEventListener('click', e => { e.preventDefault(); const t = document.querySelector(a.getAttribute('href')); if (t) t.scrollIntoView({ behavior: 'smooth' }); });
 });
 </script>
 </body>
