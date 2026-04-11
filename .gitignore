@@ -12,3 +12,6 @@ scripts/uninstall.sh
 
 # Claude Code local config
 .claude/
+
+# Marketing content (local only)
+marketing/
