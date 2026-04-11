@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 520" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">
+  <style>
+    @keyframes t1 { 0%,8% { opacity:0 } 10% { opacity:1 } }
+    @keyframes t2 { 0%,18% { opacity:0 } 20% { opacity:1 } }
+    @keyframes t3 { 0%,30% { opacity:0 } 32% { opacity:1 } }
+    @keyframes t4 { 0%,44% { opacity:0 } 46% { opacity:1 } }
+    @keyframes t5 { 0%,56% { opacity:0 } 58% { opacity:1 } }
+    @keyframes cursor { 0%,49% { opacity:1 } 50%,100% { opacity:0 } }
+    @keyframes fade { 0%,95% { opacity:1 } 97%,100% { opacity:0 } }
+    .line1 { animation: t1 16s infinite; opacity:0 }
+    .line2 { animation: t2 16s infinite; opacity:0 }
+    .line3 { animation: t3 16s infinite; opacity:0 }
+    .line4 { animation: t4 16s infinite; opacity:0 }
+    .line5 { animation: t5 16s infinite; opacity:0 }
+    .blink { animation: cursor 1s step-end infinite }
+    .all { animation: fade 16s infinite }
+  </style>
+
+  <!-- Terminal chrome -->
+  <rect width="840" height="520" rx="10" fill="#0a0a0a"/>
+  <rect width="840" height="40" rx="10" fill="#161616"/>
+  <rect y="30" width="840" height="10" fill="#161616"/>
+  <circle cx="24" cy="20" r="6" fill="#ff5f57"/>
+  <circle cx="44" cy="20" r="6" fill="#febc2e"/>
+  <circle cx="64" cy="20" r="6" fill="#28c840"/>
+  <text x="420" y="24" fill="#555" text-anchor="middle" font-size="12">engram</text>
+  <line x1="0" y1="40" x2="840" y2="40" stroke="#1e1e1e"/>
+
+  <g class="all">
+    <!-- Scene 1: User prompt -->
+    <g class="line1">
+      <text x="28" y="80" fill="#555">~</text>
+      <text x="48" y="80" fill="#ededed">help me finish the Q2 report</text>
+    </g>
+
+    <!-- Scene 2: Engram tag -->
+    <g class="line2">
+      <text x="28" y="116" fill="#00cc88">engram</text>
+      <text x="90" y="116" fill="#333">context loaded from 3 days of activity</text>
+    </g>
+
+    <!-- Scene 3: Claude response -->
+    <g class="line3">
+      <text x="28" y="156" fill="#a0a0a0">You started this last Thursday. Revenue section is done.</text>
+      <text x="28" y="176" fill="#a0a0a0">The churn analysis is incomplete &#x2014; you noted the data source</text>
+      <text x="28" y="196" fill="#a0a0a0">was unreliable. Pulling from the updated dashboard now.</text>
+    </g>
+
+    <!-- Scene 4: Pattern detection -->
+    <g class="line4">
+      <text x="28" y="246" fill="#00cc88">engram</text>
+      <text x="90" y="246" fill="#333">weekly pattern detected</text>
+      <text x="28" y="282" fill="#a0a0a0">You context-switched between</text>
+      <text x="247" y="282" fill="#ededed">8 projects</text>
+      <text x="327" y="282" fill="#a0a0a0">on Tuesday.</text>
+      <text x="28" y="302" fill="#a0a0a0">On days with &#x2264;3 switches, your output is</text>
+      <text x="340" y="302" fill="#ededed">2.4x higher</text>
+      <text x="428" y="302" fill="#a0a0a0">.</text>
+      <text x="28" y="322" fill="#a0a0a0">Last 3 high-output days all started with 2h of focused work.</text>
+    </g>
+
+    <!-- Scene 5: Memory recall -->
+    <g class="line5">
+      <text x="28" y="372" fill="#555">~</text>
+      <text x="48" y="372" fill="#ededed">the deploy keeps failing with that auth error</text>
+      <text x="28" y="408" fill="#00cc88">engram</text>
+      <text x="90" y="408" fill="#333">matched from 27 days of history</text>
+      <text x="28" y="444" fill="#a0a0a0">You hit this exact issue on March 15th. Root cause was a</text>
+      <text x="28" y="464" fill="#a0a0a0">misconfigured env variable. Fix was in</text>
+      <text x="312" y="464" fill="#ededed">deploy.yaml:47</text>
+      <text x="28" y="484" fill="#a0a0a0">Check if it was reverted in the last release.</text>
+    </g>
+  </g>
+</svg>

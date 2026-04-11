@@ -16,6 +16,12 @@
 
 </div>
 
+<p align="center">
+  <a href="https://lessthanno.github.io/engram-agent/">
+    <img src="docs/demo.svg" alt="Engram demo" width="720">
+  </a>
+</p>
+
 ---
 
 ## Before and After
@@ -173,7 +179,13 @@ Think of it as a **daily journal that writes itself** -- and your AI reads it ev
 
 ## Quick Start
 
-Three commands. Two minutes.
+**One line:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/scripts/quickstart.sh | bash
+```
+
+**Or manually:**
 
 ```bash
 git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent
@@ -183,7 +195,13 @@ bash scripts/install.sh
 
 The installer asks 3 questions (where to store memory, your email, which folders to scan), then sets up everything automatically.
 
-After install, **you don't need to do anything.** Engram runs on its own.
+**After install, verify everything works:**
+
+```bash
+bash ~/engram-agent/scripts/verify.sh
+```
+
+Then do nothing. Engram runs on its own every night.
 
 ---
 
@@ -243,18 +261,33 @@ Missing tools are skipped gracefully. No errors, no broken setup.
 
 ---
 
-## Ask Your Memory
+## The `@engram` Agent
 
-Once Engram is running, you can query your own history from any Claude Code session:
+Once installed, type `@engram` in any Claude Code session to query your behavioral memory.
 
+### What it can do
+
+| Query | What happens |
+|-------|-------------|
+| `@engram What was I working on last Tuesday?` | Reads `daily/YYYY-MM-DD.md` logs |
+| `@engram Have I seen this problem before?` | Searches `consciousness.md` and daily logs |
+| `@engram What are my open tasks?` | Reads `tasks.md` directly |
+| `@engram What patterns am I showing?` | Summarizes `patterns.md` trends |
+| `@engram What are my weaknesses?` | Honest summary from `weaknesses.md` |
+
+### How it works
+
+The agent is a Claude Code custom agent (`~/.claude/agents/engram.md`) with read-only access to your memory repo. It uses `Read`, `Glob`, and `Grep` tools to search your data — it never modifies your memory.
+
+### Setup
+
+The agent is installed automatically by `scripts/install.sh`. To install manually:
+
+```bash
+cp agents/engram.md ~/.claude/agents/
 ```
-> @memory-analyst What was I working on last Tuesday?
-> @memory-analyst Have I seen this problem before?
-> @memory-analyst What are my open tasks?
-> @memory-analyst What patterns am I showing this week?
-```
 
-Like talking to a version of yourself that actually takes notes.
+Then restart Claude Code. Type `@engram` to verify it's working.
 
 ---
 
