@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pet Protocol — Your AI Twin Lives in Your Browser</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    :root {
+      --bg:      #080812;
+      --surface: #0f0f1e;
+      --border:  #1e1e32;
+      --accent:  #a8d8ea;
+      --pink:    #FFB3C6;
+      --yellow:  #FFE066;
+      --green:   #7fff8f;
+      --orange:  #E8A87C;
+      --text:    #e0e0e0;
+      --muted:   #555566;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, monospace;
+      overflow-x: hidden;
+    }
+
+    /* scanline overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(8,8,18,0.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 56px;
+    }
+    .nav-logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px; color: var(--accent);
+      letter-spacing: 1px;
+    }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a {
+      font-size: 11px; color: var(--muted); text-decoration: none;
+      letter-spacing: 0.5px; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-install {
+      background: var(--accent); color: #080812;
+      font-size: 10px; font-weight: 700;
+      padding: 8px 16px; border: none; cursor: pointer;
+      letter-spacing: 0.5px; text-decoration: none;
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+    .nav-install:hover { background: #c8eefa; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 56px 40px 0;
+      position: relative; overflow: hidden;
+    }
+    .hero-content { flex: 1; max-width: 560px; z-index: 1; }
+    .hero-badge {
+      display: inline-block;
+      font-size: 9px; color: var(--green);
+      border: 1px solid var(--green);
+      padding: 4px 10px; margin-bottom: 24px;
+      letter-spacing: 1px;
+    }
+    .hero-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(18px, 3vw, 28px);
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+    .hero-title span.acc { color: var(--accent); }
+    .hero-title span.pink { color: var(--pink); }
+    .hero-sub {
+      font-size: 14px; line-height: 1.8;
+      color: var(--muted); margin-bottom: 36px; max-width: 440px;
+    }
+    .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #080812;
+      font-size: 11px; font-weight: 700;
+      padding: 14px 28px; border: none; cursor: pointer;
+      letter-spacing: 0.5px; text-decoration: none; display: inline-block;
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+      transition: all 0.15s;
+    }
+    .btn-primary:hover { background: #c8eefa; transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      font-size: 11px; font-weight: 600;
+      padding: 14px 28px; text-decoration: none;
+      border: 1px solid var(--border); display: inline-block;
+      transition: all 0.15s; letter-spacing: 0.5px;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Hero Canvas (demo pet) ── */
+    .hero-pet {
+      position: absolute; right: 80px; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    .hero-pet canvas {
+      image-rendering: pixelated;
+      width: 160px; height: 160px;
+      filter: drop-shadow(0 8px 32px rgba(168,216,234,0.3));
+      cursor: pointer;
+    }
+    .hero-bubble {
+      background: rgba(15,15,30,0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 14px;
+      font-size: 11px; color: var(--accent);
+      max-width: 200px; text-align: center;
+      position: relative;
+    }
+    .hero-bubble::after {
+      content: '';
+      position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 6px solid transparent; border-right: 6px solid transparent;
+      border-top: 6px solid var(--border);
+    }
+    .hero-bubble span { color: var(--muted); font-size: 9px; display: block; margin-top: 3px; }
+
+    /* floating particles */
+    .particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .particle {
+      position: absolute; width: 4px; height: 4px;
+      background: var(--accent); opacity: 0;
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.3; }
+      90%  { opacity: 0.1; }
+      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── Section base ── */
+    section { padding: 100px 40px; }
+    .section-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px; color: var(--accent);
+      letter-spacing: 2px; margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 28px; font-weight: 700;
+      line-height: 1.3; margin-bottom: 16px;
+    }
+    .section-sub { font-size: 14px; color: var(--muted); line-height: 1.8; max-width: 500px; }
+
+    /* ── Features ── */
+    .features { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); margin-top: 56px;
+    }
+    .feature-card {
+      background: var(--surface);
+      padding: 32px;
+      transition: background 0.2s;
+    }
+    .feature-card:hover { background: rgba(168,216,234,0.03); }
+    .feature-icon {
+      width: 48px; height: 48px;
+      image-rendering: pixelated;
+      margin-bottom: 16px;
+    }
+    .feature-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px; color: var(--accent);
+      letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.8; }
+
+    /* ── Multi-pet Demo ── */
+    .demo-section { background: var(--bg); }
+    .demo-wrapper {
+      margin-top: 56px;
+      border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+      background: var(--surface);
+    }
+    .demo-chrome {
+      background: #0a0a16; border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-url {
+      flex: 1; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 4px 12px; font-size: 11px; color: var(--muted);
+      margin: 0 12px;
+    }
+    .demo-canvas-wrap {
+      position: relative; height: 360px;
+      background: linear-gradient(180deg, #0d0d1e 0%, #060610 100%);
+      overflow: hidden;
+    }
+    /* fake page content */
+    .demo-page-content {
+      padding: 40px; opacity: 0.15;
+    }
+    .demo-page-content div {
+      height: 12px; background: var(--muted);
+      border-radius: 2px; margin-bottom: 10px;
+    }
+    #demo-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    /* ── How it works ── */
+    .how-section { background: var(--surface); border-top: 1px solid var(--border); }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 56px; }
+    .step {
+      display: grid; grid-template-columns: 80px 1fr;
+      gap: 24px; padding: 32px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 24px; color: var(--border);
+      padding-top: 4px;
+    }
+    .step-content {}
+    .step-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step-desc { font-size: 13px; color: var(--muted); line-height: 1.8; }
+    .step-code {
+      margin-top: 12px; background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 10px 14px; font-family: monospace;
+      font-size: 11px; color: var(--accent);
+    }
+
+    /* ── Install ── */
+    .install-section {
+      text-align: center;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .install-big {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(14px, 2.5vw, 22px);
+      line-height: 1.8; margin-bottom: 40px;
+      color: var(--text);
+    }
+    .install-big span { color: var(--accent); }
+    .install-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+    .version-note { font-size: 11px; color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 11px; color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 10px; color: var(--muted); }
+
+    /* ── Pixel cat badges ── */
+    .peer-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 12px; margin: 6px;
+      font-size: 11px;
+    }
+    .peer-badge canvas { image-rendering: pixelated; }
+    .peer-name { color: var(--accent); }
+    .peer-state { color: var(--muted); font-size: 9px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 80px 20px 40px; flex-direction: column; text-align: center; }
+      .hero-pet { position: static; transform: none; margin: 40px auto 0; }
+      .hero-cta { justify-content: center; }
+      section { padding: 60px 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      footer { justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">🐾 PET PROTOCOL</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#demo">Demo</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/xiaozihao/pet-protocol" target="_blank">GitHub</a>
+  </div>
+  <a class="nav-install" href="https://github.com/xiaozihao/pet-protocol" target="_blank">INSTALL →</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">▶ OPEN SOURCE · CHROME EXTENSION</div>
+    <h1 class="hero-title">
+      YOUR <span class="acc">AI TWIN</span><br>
+      LIVES IN<br>
+      YOUR <span class="pink">BROWSER.</span>
+    </h1>
+    <p class="hero-sub">
+      A pixel cat that reads your actual work memory, generates its own personality,
+      and interacts with your teammates' pets — all in real time.
+    </p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="https://github.com/xiaozihao/pet-protocol" target="_blank">GET STARTED →</a>
+      <a class="btn-ghost" href="#demo">SEE DEMO</a>
+    </div>
+  </div>
+
+  <div class="hero-pet">
+    <canvas id="hero-cat" width="40" height="40" title="Click me!"></canvas>
+    <div class="hero-bubble" id="hero-bubble">
+      喵，我读了你的记忆～
+      <span id="hero-sub-text">基于 zihao-mind 自动生成</span>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="section-label">// FEATURES</div>
+  <h2 class="section-title">不只是桌面宠物</h2>
+  <p class="section-sub">每一个功能都来自真实需求：你的意识需要一个数字载体。</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <canvas class="feature-icon" id="fi-0" width="12" height="12"></canvas>
+      <div class="feature-name">MEMORY-DRIVEN</div>
+      <p class="feature-desc">
+        读取你的 zihao-mind 记忆库、git 提交记录，自动决定今天的情绪和想说的话。
+        不需要手动设置 — 性格自己长出来。
+      </p>
+    </div>
+    <div class="feature-card">
+      <canvas class="feature-icon" id="fi-1" width="12" height="12"></canvas>
+      <div class="feature-name">MULTI-PET</div>
+      <p class="feature-desc">
+        当队友也安装了 Pet Protocol，他们的猫会出现在你的页面右侧。
+        在同一个网页上，2只、3只猫一起出没。
+      </p>
+    </div>
+    <div class="feature-card">
+      <canvas class="feature-icon" id="fi-2" width="12" height="12"></canvas>
+      <div class="feature-name">AI CHAT</div>
+      <p class="feature-desc">
+        支持 Claude Code、Codex、Anthropic API 三种模式。
+        直接在浏览器右下角跟你的 AI 分身对话，执行任务。
+      </p>
+    </div>
+    <div class="feature-card">
+      <canvas class="feature-icon" id="fi-3" width="12" height="12"></canvas>
+      <div class="feature-name">OPEN SOURCE</div>
+      <p class="feature-desc">
+        MIT 协议，代码完全透明。Bridge 本地运行，
+        没有外部服务器，没有数据上传。你的记忆只属于你。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Multi-pet Demo -->
+<section class="demo-section" id="demo">
+  <div class="section-label">// LIVE DEMO</div>
+  <h2 class="section-title">多猫共存</h2>
+  <p class="section-sub">当你的队友也安装了扩展，他们的猫会出现在你的页面右边。</p>
+
+  <div style="margin-top: 24px; display: flex; gap: 8px; flex-wrap: wrap;">
+    <div class="peer-badge">
+      <canvas id="badge-0" width="16" height="16" style="image-rendering:pixelated;"></canvas>
+      <div><div class="peer-name">ZIHAO</div><div class="peer-state">● insight</div></div>
+    </div>
+    <div class="peer-badge">
+      <canvas id="badge-1" width="16" height="16" style="image-rendering:pixelated; filter:hue-rotate(200deg) saturate(1.4)"></canvas>
+      <div><div class="peer-name">ALICE</div><div class="peer-state">● idle</div></div>
+    </div>
+    <div class="peer-badge">
+      <canvas id="badge-2" width="16" height="16" style="image-rendering:pixelated; filter:hue-rotate(280deg) saturate(1.4)"></canvas>
+      <div><div class="peer-name">BOB</div><div class="peer-state">● sleep</div></div>
+    </div>
+  </div>
+
+  <div class="demo-wrapper" style="margin-top: 24px;">
+    <div class="demo-chrome">
+      <div class="demo-dot" style="background:#FF5F56"></div>
+      <div class="demo-dot" style="background:#FFBD2E"></div>
+      <div class="demo-dot" style="background:#27C93F"></div>
+      <div class="demo-url">github.com / xiaozihao / pet-protocol</div>
+    </div>
+    <div class="demo-canvas-wrap">
+      <div class="demo-page-content">
+        <div style="width:60%"></div><div style="width:80%"></div><div style="width:45%"></div>
+        <div style="width:70%"></div><div style="width:90%"></div><div style="width:55%"></div>
+        <div style="width:65%"></div><div style="width:75%"></div>
+      </div>
+      <canvas id="demo-canvas"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how-section" id="install">
+  <div class="section-label">// HOW IT WORKS</div>
+  <h2 class="section-title">4 步跑起来</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <div class="step-title">克隆仓库</div>
+        <p class="step-desc">从 GitHub 拿代码，整个 repo 包含 Chrome 扩展 + 本地 bridge。</p>
+        <div class="step-code">git clone https://github.com/xiaozihao/pet-protocol<br>cd pet-protocol</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <div class="step-title">启动 pet-bridge</div>
+        <p class="step-desc">本地 Go 服务，包装 Claude Code / Codex CLI，读取你的记忆文件。</p>
+        <div class="step-code">cd bridge && go build -o pet-bridge . && ./pet-bridge</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <div class="step-title">加载扩展</div>
+        <p class="step-desc">Chrome → 扩展程序 → 开发者模式 → 加载已解压的扩展程序，选择 pet-protocol 目录。</p>
+        <div class="step-code">chrome://extensions → Load unpacked → /pet-protocol</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <div class="step-title">配置 &amp; 享受</div>
+        <p class="step-desc">点击扩展图标，选择 Agent 模式，设置宠物名字，点 Save。你的 AI 分身就会出现。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install CTA -->
+<section class="install-section">
+  <div class="section-label" style="text-align:center">// GET IT</div>
+  <div class="install-big">
+    SHIP YOUR<br><span>CONSCIOUSNESS</span><br>TO THE BROWSER.
+  </div>
+  <div class="install-cta">
+    <a class="btn-primary" href="https://github.com/xiaozihao/pet-protocol" target="_blank">VIEW ON GITHUB →</a>
+    <a class="btn-ghost" href="https://github.com/xiaozihao/pet-protocol/releases" target="_blank">RELEASES</a>
+  </div>
+  <div class="version-note">v0.1.0 · MIT License · No telemetry · 100% local</div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">🐾 PET PROTOCOL</div>
+  <div class="footer-links">
+    <a href="https://github.com/xiaozihao/pet-protocol" target="_blank">GitHub</a>
+    <a href="https://github.com/xiaozihao/pet-protocol/issues" target="_blank">Issues</a>
+    <a href="https://github.com/xiaozihao/pet-protocol/blob/main/README.md" target="_blank">Docs</a>
+  </div>
+  <div class="footer-copy">Built by ZIHAO · Powered by Claude</div>
+</footer>
+
+<script>
+// ── Pixel art palette ──────────────────────────────────────────────────────
+const P = {
+  '.': null, 'W': '#F0F0F0', 'G': '#CCCCCC', 'K': '#222222',
+  'P': '#FFB3C6', 'B': '#111111', 'H': '#FF6B8A', 'Z': '#A8D8EA',
+  'Y': '#FFE066', 'g': '#888888', 'b': '#333333', 'o': '#CC7744', 'w': '#DDDDDD',
+};
+const px = s => s.split('');
+
+const ART_IDLE = [
+  [px('............'), px('..KK..KK....'), px('.KWWK.KWWK..'), px('.KPWKKPWWK..'),
+   px('.KWWWWWWWK..'), px('..KWWWWWWK..'), px('..KWWbWbWK..'), px('..KWWWPWWK..'),
+   px('..KWWWWWWK..'), px('.KWWWWWWWK..'), px('.KWWWWWWWK..'), px('..KKKKKKK...'),
+   ],
+  [px('............'), px('..KK..KK....'), px('.KWWK.KWWK..'), px('.KPWKKPWWK..'),
+   px('.KWWWWWWWK..'), px('..KWWWWWWK..'), px('..KWWgggWK..'), px('..KWWWPWWK..'),
+   px('..KWWWWWWK..'), px('.KWWWWWWWK..'), px('.KWWWWWWWK..'), px('..KKKKKKK...'),
+   ],
+];
+
+const ART_SLEEP_SM = [
+  [px('............'), px('....KKKKK...'), px('...KWWWWWK..'), px('..KWWWWWWWK.'),
+   px('.KWWKKggWWK.'), px('.KWWWWWWWWK.'), px('..KWWWWWWWK.'), px('..KKKWWWKKK.'),
+   px('.....KKK....'), px('........Z...'), px('............'), px('............'),
+   ],
+  [px('............'), px('....KKKKK...'), px('...KWWWWWK..'), px('..KWWWWWWWK.'),
+   px('.KWWKKggWWK.'), px('.KWWWWWWWWK.'), px('..KWWWWWWWK.'), px('..KKKWWWKKK.'),
+   px('.....KKK....'), px('.......Z.Z..'), px('........Z...'), px('............'),
+   ],
+];
+
+function renderSm(canvas, grid, scale) {
+  const w = grid[0].length, h = grid.length;
+  canvas.width  = w * scale;
+  canvas.height = h * scale;
+  const c = canvas.getContext('2d');
+  c.clearRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < h; r++)
+    for (let col = 0; col < w; col++) {
+      const color = P[grid[r]?.[col]];
+      if (color) { c.fillStyle = color; c.fillRect(col * scale, r * scale, scale, scale); }
+    }
+}
+
+// ── Hero cat ──────────────────────────────────────────────────────────────
+(function heroCat() {
+  const canvas  = document.getElementById('hero-cat');
+  const bubble  = document.getElementById('hero-bubble');
+  const subtext = document.getElementById('hero-sub-text');
+  if (!canvas) return;
+  canvas.width = 40; canvas.height = 40;
+  const c = canvas.getContext('2d');
+  let fi = 0, t = 0;
+  const msgs = [
+    ['喵，我读了你的记忆～', '今天你在想什么？'],
+    ['最近 git 有不少提交 👀', '看起来很忙的样子'],
+    ['有队友也在这个页面！', '他们的猫也在边上'],
+    ['内存驱动，无需配置', '性格自己就长出来了'],
+  ];
+  let mi = 0;
+
+  canvas.addEventListener('click', () => {
+    mi = (mi + 1) % msgs.length;
+    bubble.childNodes[0].textContent = msgs[mi][0];
+    subtext.textContent = msgs[mi][1];
+    // Jump animation: scale up briefly
+    canvas.style.transform = 'scale(1.15) translateY(-8px)';
+    canvas.style.transition = 'transform 0.15s';
+    setTimeout(() => { canvas.style.transform = ''; }, 300);
+  });
+
+  function draw() {
+    const frame = ART_IDLE[fi % 2];
+    const s = 3;
+    c.clearRect(0, 0, 40, 40);
+    for (let r = 0; r < frame.length; r++)
+      for (let col = 0; col < frame[r].length; col++) {
+        const color = P[frame[r][col]];
+        if (color) { c.fillStyle = color; c.fillRect(col * s, r * s, s, s); }
+      }
+    t++;
+    if (t % 40 === 0) fi++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Feature icons (mini pixel cats) ────────────────────────────────────────
+const featureArt = [
+  // Memory icon (brain/sparkle)
+  [px('....KKKK....'), px('...KWWWWK...'), px('..KWWYWWWK..'), px('..KWYWWYWK..'),
+   px('..KWWWWWWK..'), px('..KWWWWWWK..'), px('...KZWWZK...'), px('....KKKK....'),
+   px('............'), px('......Y.....'), px('...Y........'), px('............')],
+  // Multi-pet: two cats
+  [px('..KK.KK.....'), px('.KWWKKWWK...'), px('.KPWWWPWK...'), px('.KWWWWWWK...'),
+   px('..KWWWWK....'), px('..KWbWbK....'), px('..KWWPWK....'), px('..KKKKK.....'),
+   px('............'), px('............'), px('............'), px('............')],
+  // Chat bubble
+  [px('..KKKKKK....'), px('.KWWWWWWK...'), px('.KWgWgWWK...'), px('.KWWWWWWK...'),
+   px('.KWWWWWWK...'), px('.KKKKKKKK...'), px('...K........'), px('..K.........'),
+   px('............'), px('............'), px('............'), px('............')],
+  // Open source / lock open
+  [px('....KKK.....'), px('...K...K....'), px('...K...K....'), px('....KKK.....'),
+   px('..KKKKKKK...'), px('..KWWWWWK...'), px('..KWWYYWK...'), px('..KWWWWWK...'),
+   px('..KKKKKKK...'), px('............'), px('............'), px('............')],
+];
+
+[0,1,2,3].forEach(i => {
+  const canvas = document.getElementById(`fi-${i}`);
+  if (!canvas) return;
+  renderSm(canvas, featureArt[i], 3);
+});
+
+// ── Badge cats ──────────────────────────────────────────────────────────────
+['badge-0', 'badge-1', 'badge-2'].forEach((id, i) => {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  renderSm(canvas, ART_IDLE[0], 1);
+});
+
+// ── Demo canvas (multi-pet animation) ─────────────────────────────────────
+(function demoAnimation() {
+  const canvas = document.getElementById('demo-canvas');
+  if (!canvas) return;
+  const c = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const PX = 3, SZ = 36; // 12x12 grid × 3px
+
+  const cats = [
+    { name: 'ZIHAO',  color: null,          state: 'idle',  fi: 0, t: 0, rightOffset: 14, bottomFrac: 0.55 },
+    { name: 'ALICE',  color: 'hue-rotate(200deg) saturate(1.4)', state: 'idle', fi: 0, t: 20, rightOffset: 14, bottomFrac: 0.70 },
+    { name: 'BOB',    color: 'hue-rotate(280deg) saturate(1.4)', state: 'sleep', fi: 0, t: 10, rightOffset: 14, bottomFrac: 0.85 },
+  ];
+
+  // Phase: 0=all peeking, 1=slide out, 2=idle, 3=retreat
+  let phase = 0, phaseTimer = 0;
+
+  function drawCatAt(x, y, art, frame) {
+    for (let r = 0; r < art.length; r++)
+      for (let col = 0; col < art[r].length; col++) {
+        const color = P[art[r][col]];
+        if (color) { c.fillStyle = color; c.fillRect(x + col * PX, y + r * PX, PX, PX); }
+      }
+  }
+
+  let tick = 0;
+  function loop() {
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    tick++;
+
+    // Phase management
+    phaseTimer++;
+    if (phase === 0 && phaseTimer > 80)  { phase = 1; phaseTimer = 0; }
+    if (phase === 1 && phaseTimer > 60)  { phase = 2; phaseTimer = 0; }
+    if (phase === 2 && phaseTimer > 180) { phase = 3; phaseTimer = 0; }
+    if (phase === 3 && phaseTimer > 60)  { phase = 0; phaseTimer = 0; cats.forEach(cat => { cat.fi = 0; cat.t = 0; }); }
+
+    const W = canvas.width, H = canvas.height;
+
+    cats.forEach((cat, i) => {
+      cat.t++;
+      if (cat.t % 35 === 0) cat.fi = (cat.fi + 1) % 2;
+
+      const art   = cat.state === 'sleep' ? ART_SLEEP_SM : ART_IDLE;
+      const frame = art[cat.fi];
+      const cy    = H * cat.bottomFrac - SZ;
+
+      // X position based on phase
+      let cx;
+      const eased = Math.min(1, phaseTimer / 50);
+      const spring = eased < 0.5 ? 4 * eased * eased * eased : 1 - Math.pow(-2 * eased + 2, 3) / 2;
+
+      if (phase === 0) { cx = W - (SZ - 14); }
+      else if (phase === 1) { cx = W - (SZ - 14) - spring * (SZ + 6); }
+      else if (phase === 2) { cx = W - SZ - 20; }
+      else { cx = W - (SZ - 14) - (1 - spring) * (SZ + 6); }
+
+      // Apply color filter via offscreen canvas if needed
+      if (cat.color) {
+        // Draw to offscreen
+        const off = document.createElement('canvas');
+        off.width = SZ; off.height = SZ;
+        const oc  = off.getContext('2d');
+        drawCatAt(0, 0, frame, cat.fi);
+
+        // Save/restore with filter (CSS filter on canvas is not standard; draw with globalCompositeOperation trick)
+        c.save();
+        c.filter = cat.color;
+        c.drawImage(off, cx, cy);
+        c.filter = 'none';
+        c.restore();
+      } else {
+        drawCatAt(cx, cy, frame, cat.fi);
+      }
+
+      // Name tag
+      if (phase === 2 || (phase === 1 && eased > 0.7)) {
+        const alpha = phase === 1 ? (eased - 0.7) / 0.3 : 1;
+        c.save();
+        c.globalAlpha = alpha;
+        c.fillStyle = 'rgba(0,0,0,0.7)';
+        const tw = cat.name.length * 6 + 8;
+        const tx = cx + SZ - tw;
+        c.fillRect(tx, cy - 16, tw, 13);
+        c.fillStyle = '#a8d8ea';
+        c.font = '8px monospace';
+        c.fillText(cat.name, tx + 4, cy - 5);
+        c.restore();
+      }
+    });
+
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+// ── Floating particles ──────────────────────────────────────────────────────
+(function particles() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size  = Math.random() * 3 + 2;
+    const left  = Math.random() * 100;
+    const delay = Math.random() * 20;
+    const dur   = 15 + Math.random() * 20;
+    const colors = ['#a8d8ea','#FFB3C6','#FFE066','#7fff8f'];
+    p.style.cssText = `
+      left: ${left}%; width: ${size}px; height: ${size}px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      animation-delay: ${delay}s; animation-duration: ${dur}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+</script>
+
+</body>
+</html>

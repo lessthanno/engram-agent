@@ -1,0 +1,6 @@
+node_modules/
+bridge/pet-bridge
+bridge/go.sum
+*.DS_Store
+.env
+*.log

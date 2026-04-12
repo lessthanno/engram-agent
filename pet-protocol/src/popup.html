@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 240px; background: #0f0f16; color: #eee; font-family: monospace; padding: 16px; font-size: 11px; }
+    h1 { font-size: 12px; color: #a8d8ea; margin-bottom: 14px; letter-spacing: 1px; }
+    label { display: block; color: #555; margin: 10px 0 4px; font-size: 9px; letter-spacing: 0.5px; }
+    input { width: 100%; background: #1a1a2e; border: 1px solid #2a2a3e; color: #eee; padding: 6px 8px; font-family: monospace; font-size: 11px; border-radius: 4px; outline: none; }
+    input:focus { border-color: #a8d8ea; }
+
+    .modes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 4px; }
+    .mode-card { border: 1px solid #2a2a3e; border-radius: 6px; padding: 8px 4px; cursor: pointer; text-align: center; transition: all 0.15s; background: #1a1a2e; }
+    .mode-card.selected { border-color: #a8d8ea; background: rgba(168,216,234,0.07); }
+    .mode-card .icon { font-size: 18px; margin-bottom: 3px; }
+    .mode-card .name { font-size: 8px; color: #888; }
+    .mode-card.selected .name { color: #a8d8ea; }
+
+    .cfg { display: none; margin-top: 8px; }
+    .cfg.show { display: block; }
+    .hint { font-size: 9px; color: #444; margin-top: 4px; line-height: 1.5; }
+    .hint code { color: #777; background: #1a1a2e; padding: 1px 4px; border-radius: 2px; font-size: 9px; }
+    .badge { display: inline-block; background: #1a3a1a; color: #4caf50; font-size: 8px; padding: 1px 5px; border-radius: 3px; margin-top: 4px; }
+
+    hr { border: none; border-top: 1px solid #1e1e2e; margin: 12px 0; }
+
+    .pet-row { display: flex; gap: 5px; margin-top: 4px; }
+    .pet-opt { flex: 1; border: 1px solid #2a2a3e; border-radius: 5px; padding: 6px 4px; cursor: pointer; text-align: center; font-size: 9px; color: #666; background: #1a1a2e; transition: all 0.15s; }
+    .pet-opt.selected { border-color: #a8d8ea; color: #a8d8ea; }
+    .dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 3px; }
+
+    button { width: 100%; margin-top: 14px; background: #a8d8ea; color: #0f0f16; border: none; padding: 8px; font-family: monospace; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    .status { font-size: 9px; color: #4caf50; margin-top: 6px; text-align: center; height: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🐾 PET PROTOCOL</h1>
+
+  <label>AGENT 模式</label>
+  <div class="modes">
+    <div class="mode-card" data-mode="claude">
+      <div class="icon">🤖</div>
+      <div class="name">Claude Code</div>
+    </div>
+    <div class="mode-card" data-mode="codex">
+      <div class="icon">📦</div>
+      <div class="name">Codex</div>
+    </div>
+    <div class="mode-card selected" data-mode="api">
+      <div class="icon">🔑</div>
+      <div class="name">API Key</div>
+    </div>
+  </div>
+
+  <div class="cfg" id="cfg-claude">
+    <div class="badge">✓ 已检测到本地 claude</div>
+    <div class="hint">需要运行 pet-bridge:<br><code>./bridge/pet-bridge</code></div>
+  </div>
+
+  <div class="cfg" id="cfg-codex">
+    <div class="badge">✓ 已检测到本地 codex</div>
+    <div class="hint">需要运行 pet-bridge:<br><code>./bridge/pet-bridge</code></div>
+  </div>
+
+  <div class="cfg show" id="cfg-api">
+    <label>ANTHROPIC API KEY</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-api03-...">
+  </div>
+
+  <hr>
+
+  <label>PET NAME</label>
+  <input type="text" id="petName" placeholder="Mochi" maxlength="12">
+
+  <label>CAT TYPE</label>
+  <div class="pet-row">
+    <div class="pet-opt selected" data-type="white">
+      <div class="dot" style="background:#F0F0F0;border:1px solid #ccc"></div>White
+    </div>
+    <div class="pet-opt" data-type="black">
+      <div class="dot" style="background:#1A1A1A;border:1px solid #555"></div>Black
+    </div>
+    <div class="pet-opt" data-type="orange">
+      <div class="dot" style="background:#E8A87C;border:1px solid #c88"></div>Orange
+    </div>
+  </div>
+
+  <button id="saveBtn">SAVE</button>
+  <div class="status" id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

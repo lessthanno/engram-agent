@@ -1,0 +1,7 @@
+#pet-protocol-pet {
+  /* override any page resets */
+  all: initial;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+}
