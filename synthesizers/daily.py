@@ -47,7 +47,7 @@ def synthesize(raw: dict, analysis_dir: Path, api_key: str = "",
 
 
 def _load_existing(analysis_dir: Path) -> dict:
-    files = ["consciousness.md", "weaknesses.md", "patterns.md", "tasks.md"]
+    files = ["consciousness.md", "weaknesses.md", "patterns.md", "tasks.md", "framework_state.md"]
     existing = {}
     for f in files:
         path = analysis_dir / f
@@ -93,6 +93,28 @@ Be specific, honest, and actionable. Focus on patterns, decisions, and open work
 ### Current tasks.md
 {existing.get('tasks.md', 'empty')[:1000]}
 
+### Current framework_state.md (project development modes)
+{existing.get('framework_state.md', 'empty')[:800]}
+
+---
+
+## Framework Reference (apply when analyzing today's activity)
+
+Each active project is in one of these development modes. Detect and update accordingly:
+
+- **quantum mode**: exploring N hypotheses in parallel, no winner yet, measurement criteria not defined
+- **atomic mode**: one direction locked, making single-variable changes and observing convergence
+- **superposition stall**: stuck between decisions for 2+ days — blocked by missing measurement criteria
+
+Signal → Framework mapping (use these to diagnose observed behavior):
+- Task stalled 2+ days → PID integral overload: systemic blocker exists, not just procrastination
+- Context window overflow → phase transition warning: approaching cliff, compress or split now
+- Multiple options, no decision → Pareto front: identify the one dimension that cannot be compromised
+- High output variance for same prompt → Shannon entropy: add output format constraints
+- New project/feature → start quantum: list hypotheses + measurement criteria before writing code
+- Winner hypothesis identified → switch to atomic: lock direction, one variable at a time
+- Architecture decision pending → maximum entropy principle: only add necessary constraints
+
 ---
 
 Produce a JSON response with exactly this structure:
@@ -106,7 +128,9 @@ Produce a JSON response with exactly this structure:
 
   "tasks_update": "Markdown section to REPLACE tasks.md content. Extract from today's data: open questions as actionable tasks, unfinished work, next steps mentioned. Format as: [ ] task (project) [priority: H/M/L]",
 
-  "patterns_update": "Markdown section to ADD to patterns.md. Note: input rhythm patterns, time of day productivity, app switching behavior, coding velocity vs cognitive work ratio."
+  "patterns_update": "Markdown section to ADD to patterns.md. Note: input rhythm patterns, time of day productivity, app switching behavior, coding velocity vs cognitive work ratio.",
+
+  "framework_state": "Markdown table to REPLACE framework_state.md. One row per active project (worked on in last 3 days). Columns: Project | Mode (quantum/atomic/stalled) | Observed Signal | Recommended Next Action. Be specific — name actual tasks and blockers, not generic advice."
 }}
 
 Return ONLY valid JSON. No preamble, no markdown fences."""
@@ -315,6 +339,12 @@ def _parse_response(response: str, raw: dict, existing: dict) -> dict:
     date_str = raw.get("date", TODAY)
     header = f"\n## {date_str}\n\n"
 
+    framework_content = parsed.get("framework_state", "")
+    if framework_content.strip():
+        framework_md = f"# Framework State\n\nLast updated: {date_str}\n\n{framework_content}\n"
+    else:
+        framework_md = existing.get("framework_state.md", "")
+
     return {
         "daily_log": _build_daily_log(parsed, raw),
         "analysis_updates": {
@@ -331,6 +361,7 @@ def _parse_response(response: str, raw: dict, existing: dict) -> dict:
                 existing.get("patterns.md", ""),
                 parsed.get("patterns_update", ""),
                 "Patterns", header),
+            "framework_state.md": framework_md,
         }
     }
 

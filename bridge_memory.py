@@ -51,6 +51,13 @@ def bridge(analysis_dir: Path):
         errors.append(f"patterns: {e}")
         log.warning(f"bridge: failed to sync patterns: {e}")
 
+    try:
+        if _sync_framework_state(analysis_dir / "framework_state.md"):
+            synced.append("framework_state")
+    except Exception as e:
+        errors.append(f"framework_state: {e}")
+        log.warning(f"bridge: failed to sync framework_state: {e}")
+
     if synced:
         log.info(f"bridge: synced [{', '.join(synced)}] to Claude auto-memory")
     if errors:
@@ -139,6 +146,36 @@ Last synced: {TODAY}
 """
     mem_file.write_text(mem_content)
     _ensure_index_entry("engram_agent_patterns.md", "Behavioral patterns from daily self-analysis (auto-synced)")
+    return True
+
+
+def _sync_framework_state(framework_file: Path) -> bool:
+    """Write current per-project quantum/atomic framework state to Claude memory."""
+    if not framework_file.exists():
+        log.debug(f"bridge: {framework_file} does not exist, skipping framework_state")
+        return False
+    content = framework_file.read_text().strip()
+    if not content or len(content) < 20:
+        log.debug(f"bridge: {framework_file} too short, skipping")
+        return False
+
+    log.info(f"bridge: writing framework_state ({len(content)} chars) to Claude auto-memory")
+    mem_file = CLAUDE_MEMORY_DIR / "engram_agent_framework_state.md"
+    mem_content = f"""---
+name: engram framework state
+description: Per-project quantum/atomic development mode — which framework applies next (auto-synced from ~/engram-memory)
+type: project
+---
+
+Last synced: {TODAY}
+
+{content}
+"""
+    mem_file.write_text(mem_content)
+    _ensure_index_entry(
+        "engram_agent_framework_state.md",
+        "Per-project quantum/atomic development state (auto-synced from engram)"
+    )
     return True
 
 
