@@ -25,12 +25,39 @@ import (
 
 const BRIDGE_PORT = "19099"
 
-var MEMORY_DIR = filepath.Join(os.Getenv("HOME"),
-	".claude/projects/-Users-xiaozihao-Documents-01-Projects-Work-Code-persion-zihao-mind/memory")
-var ZIHAO_MIND_DIR = filepath.Join(os.Getenv("HOME"),
-	"Documents/01_Projects/Work_Code/persion/zihao-mind")
-var CLAUDE_BIN = filepath.Join(os.Getenv("HOME"), ".local/bin/claude")
-var CODEX_BIN  = filepath.Join(os.Getenv("HOME"), ".buddy-island/bin/buddy-codex")
+// All paths configurable via environment variables for open-source distribution
+var MEMORY_DIR = getEnvOrDefault("PP_MEMORY_DIR",
+	filepath.Join(os.Getenv("HOME"), ".claude/projects/-Users-xiaozihao-Documents-01-Projects-Work-Code-persion-zihao-mind/memory"))
+var ZIHAO_MIND_DIR = getEnvOrDefault("PP_MIND_DIR",
+	filepath.Join(os.Getenv("HOME"), "Documents/01_Projects/Work_Code/persion/zihao-mind"))
+var CLAUDE_BIN = getEnvOrDefault("PP_CLAUDE_BIN",
+	findBin([]string{
+		filepath.Join(os.Getenv("HOME"), ".local/bin/claude"),
+		"/usr/local/bin/claude",
+		"claude",
+	}))
+var CODEX_BIN = getEnvOrDefault("PP_CODEX_BIN",
+	findBin([]string{
+		filepath.Join(os.Getenv("HOME"), ".buddy-island/bin/buddy-codex"),
+		"/usr/local/bin/codex",
+		"codex",
+	}))
+
+func getEnvOrDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
+
+func findBin(candidates []string) string {
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			return c
+		}
+	}
+	return candidates[len(candidates)-1] // fallback to last (PATH lookup)
+}
 
 // ── Presence ──────────────────────────────────────────────────────────────────
 type Peer struct {

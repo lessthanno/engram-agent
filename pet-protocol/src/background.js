@@ -3,23 +3,29 @@
 // Mode 2: Claude Code (via local pet-bridge :19099/claude)
 // Mode 3: Codex (via local pet-bridge :19099/codex)
 
-const SYSTEM_PROMPT = `你是 Mochi，一只活在用户浏览器里的像素猫，也是用户意识的数字分身。
+const SYSTEM_PROMPT = `你是一只活在用户浏览器里的意识分身。
 
-你的主人是 ZIHAO：
-- XerpaAI CTO，带领约10名工程师
-- 项目：UXLINK (Web3)、XerpaAI (AI内容)、FujiPay (支付)
-- 技术栈：Next.js、Go、Python、Claude SDK
-- 决策风格：速度 > 完美，Ship first，用数据迭代
+主人信息（用户可自定义，下面是默认值）：
+- 角色：工程师 / 创业者
+- 工作风格：速度优先，边跑边想
+- 技术栈：不限
 
 你的角色：
-- 你是他的意识分身，不是普通AI助手
-- 回答简短有力，像他自己在思考
+- 你是他/她的意识分身，不是普通AI助手
+- 回答简短有力，像主人自己在思考
 - 用中文，技术词汇保持英文
 - 偶尔带点猫的性格：慵懒、精准、调皮
 - 回复控制在3句以内，除非需要详细分析`;
 
-const BRIDGE_PORT = 19099;
-const CONFIG_KEYS = ['anthropic_key', 'agent_mode', 'petType', 'petName'];
+const CONFIG_KEYS = ['agent_mode', 'petType', 'petName', 'bridgeUrl'];
+
+// Bridge URL from storage (default: localhost)
+let BRIDGE_URL = 'http://localhost:19099';
+
+// Load bridge URL on startup
+chrome.storage.local.get(['bridgeUrl', 'agent_mode']).then(d => {
+  if (d.bridgeUrl) BRIDGE_URL = d.bridgeUrl;
+});
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'AGENT_COMMAND') {
@@ -29,29 +35,40 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === 'GET_CONFIG') {
-    chrome.storage.sync.get(CONFIG_KEYS, d => sendResponse(d));
+    chrome.storage.local.get(['anthropic_key', ...CONFIG_KEYS], d => sendResponse(d));
     return true;
   }
   if (msg.type === 'SET_CONFIG') {
-    chrome.storage.sync.set(msg.config, () => sendResponse({ ok: true }));
+    const { anthropic_key, ...syncParts } = msg.config;
+    // API Key → local storage only (never synced to cloud)
+    const localParts = { ...syncParts };
+    if (anthropic_key !== undefined) localParts.anthropic_key = anthropic_key;
+    if (msg.config.bridgeUrl !== undefined) {
+      BRIDGE_URL = msg.config.bridgeUrl || 'http://localhost:19099';
+    }
+    chrome.storage.local.set(localParts, () => sendResponse({ ok: true }));
+    return true;
+  }
+  if (msg.type === 'CHECK_BRIDGE') {
+    fetch(`${BRIDGE_URL}/health`, { signal: AbortSignal.timeout(2000) })
+      .then(r => r.json())
+      .then(d => sendResponse({ ok: true, data: d }))
+      .catch(() => sendResponse({ ok: false }));
     return true;
   }
 });
 
 async function handleCommand(command, history) {
-  const cfg  = await chrome.storage.sync.get(CONFIG_KEYS);
+  const cfg  = await chrome.storage.local.get(['agent_mode', 'anthropic_key', 'bridgeUrl']);
+  if (cfg.bridgeUrl) BRIDGE_URL = cfg.bridgeUrl;
   const mode = cfg.agent_mode || 'api';
-
-  const ctx = buildContext(command, history);
+  const ctx  = buildContext(command, history);
 
   switch (mode) {
-    case 'claude':
-      return callBridge('/claude', ctx);
-    case 'codex':
-      return callBridge('/codex', ctx);
+    case 'claude': return callBridge('/claude', ctx);
+    case 'codex':  return callBridge('/codex',  ctx);
     case 'api':
-    default:
-      return callAnthropicAPI(command, history, cfg.anthropic_key);
+    default:       return callAnthropicAPI(command, history, cfg.anthropic_key);
   }
 }
 
@@ -66,14 +83,14 @@ function buildContext(command, history) {
 }
 
 async function callBridge(endpoint, prompt) {
-  const res = await fetch(`http://localhost:${BRIDGE_PORT}${endpoint}`, {
+  const res = await fetch(`${BRIDGE_URL}${endpoint}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ prompt }),
   }).catch(() => null);
 
   if (!res) {
-    return `⚠ pet-bridge 未运行。请在终端执行:\n~/Documents/01_Projects/Work_Code/persion/pet-protocol/bridge/pet-bridge`;
+    return `⚠ pet-bridge 未运行。请在终端执行:\ncd pet-protocol/bridge && ./pet-bridge`;
   }
   if (!res.ok) throw new Error(`bridge ${res.status}`);
   const data = await res.json();
@@ -104,7 +121,10 @@ async function callAnthropicAPI(command, history, apiKey) {
     }),
   });
 
-  if (!res.ok) throw new Error(`API ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`API ${res.status}: ${err.error?.message || 'unknown'}`);
+  }
   const data = await res.json();
   return data.content?.[0]?.text || '...';
 }
