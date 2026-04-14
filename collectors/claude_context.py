@@ -4,6 +4,7 @@ Reads ~/.claude/sessions/ state files written by the cpi/ct/cs tool suite.
 Extracts per-session: context%, tool call depth, activity patterns, project mapping.
 Detects: overflow sessions, shallow usage, project-specific patterns.
 """
+from __future__ import annotations
 
 import json
 import re
