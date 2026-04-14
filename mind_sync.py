@@ -239,6 +239,14 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
             if killer_m:
                 lines.append(f"  - {killer_m.group(1).strip()[:72]}")
             lines.append("")
+    else:
+        # Show data accumulation progress
+        if daily_dir.exists():
+            day_count = len(list(daily_dir.glob("*.md")))
+            if day_count > 0:
+                lines.append("▸ YOUR MODEL")
+                lines.append(f"  Accumulating data: {day_count}/7 days — model unlocks after 7 days")
+                lines.append("")
 
     # 5. Claude usage score (today)
     usage_file = analysis_dir / "claude_usage.md"

@@ -8,7 +8,6 @@ build/
 .venv/
 .env
 *.log
-scripts/uninstall.sh
 
 # Claude Code local config
 .claude/
