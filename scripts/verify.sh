@@ -68,30 +68,34 @@ try:
 except: pass
 
 try:
-    from collectors.browser_tabs import collect
+    from collectors.input_habits import collect
     d = collect(today)
-    t = d.get('tab_count', 0)
-    names.append(f'browser({t} tabs)')
-except: pass
-
-try:
-    from collectors.shell_history import collect
-    d = collect(today)
-    c = d.get('command_count', 0)
-    names.append(f'shell({c} cmds)')
-except: pass
-
-try:
-    from collectors.recent_files import collect
-    d = collect(today)
-    f = d.get('file_count', 0)
-    names.append(f'files({f})')
+    names.append('input')
 except: pass
 
 try:
     from collectors.system_ops import collect
     d = collect(today)
     names.append('system')
+except: pass
+
+try:
+    from collectors.claude_context import collect
+    d = collect(today)
+    s = d.get('session_count', 0)
+    names.append(f'claude_ctx({s} sessions)')
+except: pass
+
+try:
+    from collectors.codex_sessions import collect
+    d = collect(today)
+    names.append('codex')
+except: pass
+
+try:
+    from collectors.cursor_sessions import collect
+    d = collect(today)
+    names.append('cursor')
 except: pass
 
 print(f'{len(names)}|{\"  \".join(names)}')

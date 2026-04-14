@@ -205,7 +205,10 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
             lines.append("▸ OPEN TASKS")
             for t in open_tasks:
                 clean = re.sub(r"[-*]?\s*\[ \]\s*", "", t)
-                lines.append(f"  · {clean[:72]}")
+                # Strip trailing metadata like (project) [priority: H]
+                clean = re.sub(r"\s*\([^)]+\)\s*\[priority:[^\]]+\].*$", "", clean)
+                clean = re.sub(r"\s*\[priority:[^\]]+\].*$", "", clean)
+                lines.append(f"  · {clean[:80]}")
             lines.append("")
 
     # 3. Latest weekly focus score
@@ -383,6 +386,7 @@ def main():
     parser.add_argument("--share", action="store_true", help="Print shareable weekly card (copy-paste for Discussions/Twitter)")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--force", action="store_true", help="Run even if today already synced")
+    parser.add_argument("--backfill", action="store_true", help="Synthesize daily logs for any raw JSON files missing a daily log")
     args = parser.parse_args()
 
     bootstrap()
@@ -400,7 +404,34 @@ def main():
         _print_share_card(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR)
         return
 
-    full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.model, args.push])
+    # --backfill: synthesize missing daily logs from existing raw JSON
+    if args.backfill:
+        from synthesizers.daily import synthesize as syn_daily
+        missing = []
+        for raw_path in sorted(RAW_DIR.glob("*.json")):
+            day = raw_path.stem
+            log_path = LOG_DIR / f"{day}.md"
+            if not log_path.exists():
+                missing.append((day, raw_path, log_path))
+        if not missing:
+            print("No gaps — all raw JSON files have daily logs.")
+            return
+        for day, raw_path, log_path in missing:
+            print(f"Synthesizing {day}...", end=" ", flush=True)
+            try:
+                raw = json.loads(raw_path.read_text())
+                raw["date"] = day
+                result = syn_daily(raw, ANALYSIS_DIR)
+                if isinstance(result, dict) and result.get("daily_log"):
+                    log_path.write_text(result["daily_log"])
+                    print(f"✓ ({len(result['daily_log'])} chars)")
+                else:
+                    print("skipped (empty result)")
+            except Exception as e:
+                print(f"✗ {e}")
+        return
+
+    full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.model, args.push, args.backfill])
 
     # Skip if already ran today (RunAtLoad guard) unless --force
     daily_log = LOG_DIR / f"{TODAY}.md"
