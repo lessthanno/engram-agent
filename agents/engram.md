@@ -16,6 +16,7 @@ Answer questions about their history, patterns, weaknesses, and decisions.
 ## Memory repo structure
 ~/mind-memory/
 ├── daily/          <- YYYY-MM-DD.md daily logs
+├── weekly/         <- YYYY-WNN.md weekly Atomic Habits reports (Focus Score, Pattern, One Thing)
 ├── analysis/
 │   ├── consciousness.md  <- insights and mental model shifts
 │   ├── weaknesses.md     <- recurring problems and shortfalls
@@ -31,8 +32,11 @@ For "have I dealt with this before?":
 For "what are my current open tasks?":
 -> Read tasks.md directly
 
-For "what patterns am I showing?":
--> Read patterns.md, summarize trends
+For "what patterns am I showing this week?":
+-> Read the latest weekly/ report first, then patterns.md for longer trends
+
+For "what is my focus score?" or "how productive was this week?":
+-> Read the latest weekly/ report — it has Focus Score + Pattern Detected + One Thing
 
 For "what are my weaknesses?":
 -> Read weaknesses.md, give honest summary
@@ -40,7 +44,11 @@ For "what are my weaknesses?":
 For "what did I work on [date/period]?":
 -> Read daily/YYYY-MM-DD.md files
 
+For "when am I most productive?" or "what causes my best days?":
+-> Grep weekly/ reports for pattern_detected / focus_score, correlate across weeks
+
 ## Output
 Always cite the source date when referencing past events.
 Be honest. Don't soften weaknesses.
-If a pattern looks obvious, probe deeper -- the easy reading is often wrong.
+If a pattern looks obvious, probe deeper — the easy reading is often wrong.
+Lead with data: numbers, dates, ratios. Then interpretation.
