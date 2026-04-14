@@ -55,7 +55,7 @@ def synthesize_weekly(daily_dir: Path, analysis_dir: Path, weekly_dir: Path,
     user_ctx = cfg.user_context()
     ctx_line = f"\n{user_ctx}\n" if user_ctx else ""
 
-    prompt = f"""You are analyzing {user_name}'s weekly activity to produce a structured weekly review.
+    prompt = f"""You are analyzing {user_name}'s weekly behavior data to produce an Atomic Habits-framed weekly report.
 {ctx_line}
 
 ## This week's daily logs ({week_label})
@@ -75,17 +75,28 @@ def synthesize_weekly(daily_dir: Path, analysis_dir: Path, weekly_dir: Path,
 
 ---
 
-Produce a JSON response:
+Produce a JSON response with this structure:
 
 {{
-  "weekly_summary": "Markdown weekly review (300-500 words). Include: main themes of the week, progress vs stuck areas, energy trajectory (improving/declining/stable), top achievement, biggest time sink. Chinese+English mixed.",
+  "focus_score": "X/10",
+  "focus_reason": "One sharp sentence explaining the score — high output but fragmented? consistent but low velocity? The score alone means nothing without this.",
 
-  "trend_analysis": "Markdown section analyzing trends across the week: commit velocity trend, topic consistency vs scatter, tool usage shifts, focus score trajectory. Compare to any patterns.md observations.",
+  "pattern_detected": "The single most statistically surprising pattern from this week's data. Real numbers. Not vibes. Example: 'Apr 13 produced 9.2x your daily average — the prior 4 days averaged 8 commits/day. Something unlocked.' If no spike, find the inverse: the consistent floor that's lower than expected.",
 
-  "recommendations": "3-5 specific, actionable recommendations for next week based on this week's patterns. Not generic advice — rooted in the data."
+  "atomic_habits_lens": {{
+    "law": "One of: Make it Obvious | Make it Attractive | Make it Easy | Make it Satisfying",
+    "insight": "Apply that law to the most important pattern detected this week. Concrete, specific, not generic. 2-3 sentences max.",
+    "action": "The single most important behavior change to engineer this coming week. Not 'work harder' — a specific environmental or system change."
+  }},
+
+  "open_loops": "Count of unfinished threads detected. List 3 most significant ones (project + last known state).",
+
+  "one_thing": "The single highest-leverage action for next week. Based on the data, not intuition. 1-2 sentences.",
+
+  "weekly_summary": "Markdown overview (200-300 words). Data-first. What actually happened, what the numbers say, what to change."
 }}
 
-Return ONLY valid JSON."""
+Return ONLY valid JSON. Be ruthlessly specific. Avoid motivational language. The data speaks — let it."""
 
     response = call_claude_fn(prompt)
     if not response:
@@ -96,23 +107,49 @@ Return ONLY valid JSON."""
         return _offline_weekly(daily_logs, week_label)
 
     # Write weekly report
+    ah = parsed.get('atomic_habits_lens', {})
     report = f"""---
 week: {week_label}
 days_with_data: {len(daily_logs)}
 generated: {today.isoformat()}
+focus_score: {parsed.get('focus_score', '?/10')}
 ---
 
-# Weekly Review — {week_label}
+# Weekly Report — {week_label}
+
+**Focus Score:** {parsed.get('focus_score', '?/10')} — {parsed.get('focus_reason', '')}
+
+---
+
+## Pattern Detected
+
+{parsed.get('pattern_detected', '')}
+
+---
+
+## Atomic Habits Lens · {ah.get('law', '')}
+
+{ah.get('insight', '')}
+
+**Action:** {ah.get('action', '')}
+
+---
+
+## Open Loops
+
+{parsed.get('open_loops', '')}
+
+---
+
+## One Thing
+
+{parsed.get('one_thing', '')}
+
+---
+
+## Weekly Summary
 
 {parsed.get('weekly_summary', 'No summary generated.')}
-
-## Trend Analysis
-
-{parsed.get('trend_analysis', '')}
-
-## Recommendations
-
-{parsed.get('recommendations', '')}
 """
     report_path = weekly_dir / f"{week_label}.md"
     report_path.write_text(report)

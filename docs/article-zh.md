@@ -108,7 +108,7 @@ git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent
 bash ~/engram-agent/scripts/install.sh
 
 # 立刻跑一次，看看你本周的数据
-python3 ~/engram-agent/core/mirror.py
+python3 ~/engram-agent/mind_sync.py --weekly
 ```
 
 如果你有 Claude API key 或者装了 Claude Code，它会用 AI 生成分析。没有的话，会先生成原始数据，等你配置后再分析。

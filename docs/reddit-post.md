@@ -60,4 +60,4 @@ A 更有情感共鸣（《原子习惯》读者直接命中）。
 
 建议：掘金发 A，少数派发 B，看哪个转化更好。
 
-封面图：用 mirror-app 落地页的 demo card 截图（或 demo-static.svg 改版）。
+封面图：用 demo-static.svg 截图（engram-agent/docs/demo-static.svg）。

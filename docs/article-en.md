@@ -107,7 +107,7 @@ git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent
 bash ~/engram-agent/scripts/install.sh
 
 # Run now
-python3 ~/engram-agent/core/mirror.py
+python3 ~/engram-agent/mind_sync.py --weekly
 ```
 
 Works with Claude Code (free, if you have it) or any Anthropic API key. If neither — it still collects your data and you can add the key later.
