@@ -186,6 +186,18 @@ Remove the observation cost. Watch what happens.
 
 ---
 
+## Try Before You Install
+
+See your own git data in 30 seconds. No install. No account.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/scripts/preview.sh | bash
+```
+
+It shows this week's commit velocity by day, your peak ratio, and which repos you touched. Your data. Instant.
+
+---
+
 ## Quick Start
 
 ```bash

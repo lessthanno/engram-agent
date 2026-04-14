@@ -365,7 +365,7 @@ def _build_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> 
         "Weekly Atomic Habits report. Runs while you sleep.",
         "",
         "→ github.com/lessthanno/engram-agent",
-        "  (30s zero-install preview: curl -fsSL .../preview.sh | bash)",
+        "  (30s preview: curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/scripts/preview.sh | bash)",
     ]
 
     return "\n".join(lines)
