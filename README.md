@@ -325,6 +325,29 @@ Removes hooks and LaunchAgent. Your memory repo is preserved.
 
 ---
 
+## Pro Tier
+
+**Engram is free and open source. Always.**
+
+The Pro tier is for people who want more coaching depth, longer history, and richer analysis.
+
+| | Free (OSS) | Pro ($10/month) |
+|---|---|---|
+| Behavioral observation | Yes | Yes |
+| Weekly Atomic Habits report | Yes | Yes |
+| Daily logs | Yes | Yes |
+| `@engram` Claude Code agent | Yes | Yes |
+| Cross-month trend analysis | No | Yes |
+| "Best day" pattern deep-dive | No | Yes |
+| Prioritized feature requests | No | Yes |
+| Private Slack for feedback | No | Yes |
+
+**→ [Upgrade to Pro ($10/month)](https://buy.stripe.com/REPLACE_WITH_STRIPE_LINK)**
+
+> Not sure yet? Run the free tier for 2 weeks first. If the weekly report surprises you, it's working.
+
+---
+
 <div align="center">
   <sub>
     MIT License · Built by <a href="https://github.com/lessthanno">@lessthanno</a><br><br>
