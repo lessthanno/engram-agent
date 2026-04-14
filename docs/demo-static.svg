@@ -1,48 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 420" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 460" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">
 
   <!-- Terminal chrome -->
-  <rect width="840" height="420" rx="10" fill="#0a0a0a"/>
+  <rect width="840" height="460" rx="10" fill="#0a0a0a"/>
   <rect width="840" height="40" rx="10" fill="#161616"/>
   <rect y="30" width="840" height="10" fill="#161616"/>
   <circle cx="24" cy="20" r="6" fill="#ff5f57"/>
   <circle cx="44" cy="20" r="6" fill="#febc2e"/>
   <circle cx="64" cy="20" r="6" fill="#28c840"/>
-  <text x="420" y="24" fill="#555" text-anchor="middle" font-size="12" font-family="'SF Mono','Cascadia Code','Fira Code',monospace">engram — daily sync</text>
+  <text x="420" y="24" fill="#555" text-anchor="middle" font-size="12" font-family="'SF Mono','Cascadia Code','Fira Code',monospace">engram — weekly report</text>
   <line x1="0" y1="40" x2="840" y2="40" stroke="#1e1e1e"/>
 
-  <!-- Prompt line -->
-  <text x="28" y="78" fill="#555" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">$</text>
-  <text x="44" y="78" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">@engram what patterns am I showing this week?</text>
+  <!-- Prompt -->
+  <text x="28" y="72" fill="#555" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">$</text>
+  <text x="44" y="72" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">@engram what patterns am I showing this week?</text>
 
-  <!-- Engram context loaded -->
-  <text x="28" y="110" fill="#00cc88" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">engram</text>
-  <text x="96" y="110" fill="#555" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">analyzing 7 days of behavior across git, shell, apps, AI sessions...</text>
+  <!-- Status line -->
+  <text x="28" y="96" fill="#00cc88" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">engram</text>
+  <text x="96" y="96" fill="#444" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">analyzing 7 days · 329 commits · 12 repos · real data</text>
 
   <!-- Divider -->
-  <line x1="28" y1="128" x2="812" y2="128" stroke="#1e1e1e" stroke-dasharray="4,4"/>
+  <line x1="28" y1="114" x2="812" y2="114" stroke="#1a1a1a"/>
 
-  <!-- Pattern 1 -->
-  <text x="28" y="155" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13" font-weight="bold">Focus Pattern</text>
-  <text x="28" y="177" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">You context-switched between</text>
-  <text x="262" y="177" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">8 projects</text>
-  <text x="344" y="177" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">on Tuesday (lowest output day).</text>
-  <text x="28" y="197" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">On days with ≤3 switches, your commit output is</text>
-  <text x="388" y="197" fill="#00cc88" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13" font-weight="bold">2.4x higher</text>
-  <text x="480" y="197" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">.</text>
+  <!-- Focus Score -->
+  <text x="28" y="138" fill="#7c6af5" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="11" font-weight="bold" letter-spacing="1">FOCUS SCORE</text>
+  <text x="28" y="158" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">6 / 10</text>
+  <text x="72" y="158" fill="#555" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">  — high output, chronic fragmentation across 12 repos</text>
 
-  <!-- Pattern 2 -->
-  <text x="28" y="229" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13" font-weight="bold">Morning Ramp-up</text>
-  <text x="28" y="251" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">First commit consistently arrives 45-60 min after first terminal command.</text>
-  <text x="28" y="271" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">You have a warmup phase. Scheduling deep work after this window increases</text>
-  <text x="28" y="291" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">throughput. Your own data — not an article about productivity.</text>
+  <!-- Divider -->
+  <line x1="28" y1="174" x2="812" y2="174" stroke="#1a1a1a"/>
 
-  <!-- Pattern 3 -->
-  <text x="28" y="323" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13" font-weight="bold">Open Debt</text>
-  <text x="28" y="345" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">2 PR reviews requested this week, 0 completed. Accumulating.</text>
-  <text x="28" y="365" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">rate_limit.go:47 has a TODO from Apr 8 — no commits since. Risk: forgotten.</text>
+  <!-- Pattern Detected -->
+  <text x="28" y="196" fill="#7c6af5" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="11" font-weight="bold" letter-spacing="1">PATTERN DETECTED</text>
+  <text x="28" y="218" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">Apr 13 produced</text>
+  <text x="154" y="218" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13" font-weight="bold">202 commits</text>
+  <text x="284" y="218" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">—</text>
+  <text x="300" y="218" fill="#00cc88" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13" font-weight="bold">9.2× the weekly daily average.</text>
+  <text x="28" y="238" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">5 out of 7 days operated at sub-10% of your demonstrated capacity.</text>
+  <text x="28" y="258" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">The ceiling exists. The floor is the problem.</text>
+
+  <!-- Divider -->
+  <line x1="28" y1="276" x2="812" y2="276" stroke="#1a1a1a"/>
+
+  <!-- Atomic Habits Lens -->
+  <text x="28" y="298" fill="#7c6af5" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="11" font-weight="bold" letter-spacing="1">ATOMIC HABITS LENS  ·  Make it Obvious</text>
+  <text x="28" y="320" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">You have a 9× day in your data. You don't know what caused it.</text>
+  <text x="28" y="340" fill="#a0a0a0" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">That's the problem. Surface it, then engineer it to repeat.</text>
+
+  <!-- Divider -->
+  <line x1="28" y1="358" x2="812" y2="358" stroke="#1a1a1a"/>
+
+  <!-- One Thing -->
+  <text x="28" y="380" fill="#7c6af5" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="11" font-weight="bold" letter-spacing="1">ONE THING</text>
+  <text x="28" y="402" fill="#ededed" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">Audit what was different on Apr 13. Protect that condition.</text>
+  <text x="28" y="422" fill="#555" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="13">Everything else is secondary.</text>
 
   <!-- Footer -->
-  <line x1="28" y1="385" x2="812" y2="385" stroke="#1e1e1e"/>
-  <text x="28" y="403" fill="#333" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="11">engram · 100% local · zero deps · runs automatically every night at 23:45</text>
+  <line x1="28" y1="440" x2="812" y2="440" stroke="#1a1a1a"/>
+  <text x="28" y="452" fill="#333" font-family="'SF Mono','Cascadia Code','Fira Code',monospace" font-size="11">engram · zero manual tracking · 100% local · runs every night at 23:45 · MIT</text>
 
 </svg>
