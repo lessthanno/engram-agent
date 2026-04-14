@@ -230,6 +230,41 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
                 lines.append(f"  One thing: {one_m.group(1).strip()[:72]}")
             lines.append("")
 
+    # 3b. 7-day commit sparkline
+    if daily_dir.exists():
+        from datetime import date as _date, timedelta as _td
+        _today = _date.today()
+        spark_chars = " ▁▂▃▄▅▆▇█"
+        counts = []
+        labels = []
+        for i in range(6, -1, -1):
+            d = _today - _td(days=i)
+            df = daily_dir / f"{d.isoformat()}.md"
+            if df.exists():
+                cm = re.search(r"^commits:\s*(\d+)", df.read_text(), re.MULTILINE)
+                counts.append(int(cm.group(1)) if cm else 0)
+            else:
+                counts.append(None)
+            labels.append(d.strftime("%a")[0])
+        # Normalize to sparkline (only non-None values for scale)
+        real = [c for c in counts if c is not None]
+        if len(real) >= 2:
+            mx = max(real) if real else 1
+            bar = ""
+            for c in counts:
+                if c is None:
+                    bar += "·"
+                elif c == 0:
+                    bar += " "
+                else:
+                    idx = max(1, round((c / mx) * (len(spark_chars) - 1)))
+                    bar += spark_chars[idx]
+            label_str = " ".join(labels)
+            peak_day = labels[counts.index(max(real))] if real else "?"
+            lines.append(f"▸ 7-DAY COMMITS  [{bar}]")
+            lines.append(f"  {label_str}   peak: {max(real)} ({peak_day})")
+            lines.append("")
+
     # 4. Behavioral model — top trigger + killer
     model_file = analysis_dir / "behavioral_model.md"
     if model_file.exists():
