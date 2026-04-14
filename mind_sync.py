@@ -273,8 +273,8 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
     print("\n".join(lines))
 
 
-def _print_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None:
-    """Generate a shareable weekly summary card (plain text, no ANSI)."""
+def _build_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> str:
+    """Build a shareable weekly summary card (plain text, no ANSI). Returns the text."""
     import re
     from datetime import date, timedelta
 
@@ -290,8 +290,7 @@ def _print_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> 
         weekly_file = weekly_dir / f"{y2}-W{w2:02d}.md"
 
     if not weekly_file.exists():
-        print("No weekly report yet. Run: python3 mind_sync.py --weekly")
-        return
+        return ""
 
     wc = weekly_file.read_text()
 
@@ -369,7 +368,27 @@ def _print_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> 
         "  (30s zero-install preview: curl -fsSL .../preview.sh | bash)",
     ]
 
-    print("\n".join(lines))
+    return "\n".join(lines)
+
+
+def _print_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None:
+    """Print a shareable weekly summary card (plain text, no ANSI)."""
+    card = _build_share_card(analysis_dir, weekly_dir, daily_dir)
+    print(card)
+
+
+def _save_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path, reports_dir: Path) -> None:
+    """Auto-save share card to reports/ after weekly synthesis."""
+    from datetime import date
+    card = _build_share_card(analysis_dir, weekly_dir, daily_dir)
+    if not card:
+        return
+    today = date.today()
+    year, week_num, _ = today.isocalendar()
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    out = reports_dir / f"share-{year}-W{week_num:02d}.txt"
+    out.write_text(card)
+    log.info(f"share card → {out}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -401,7 +420,11 @@ def main():
 
     # --share: shareable weekly card, exits immediately
     if args.share:
-        _print_share_card(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR)
+        card = _build_share_card(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR)
+        if card:
+            print(card)
+        else:
+            print("No weekly report yet. Run: python3 mind_sync.py --weekly")
         return
 
     # --backfill: synthesize missing daily logs from existing raw JSON
@@ -481,6 +504,8 @@ def main():
                 from synthesizers.weekly import synthesize_weekly
                 from synthesizers.daily import _call_claude_cli
                 synthesize_weekly(LOG_DIR, ANALYSIS_DIR, WEEKLY_DIR, _call_claude_cli)
+                # Auto-save shareable card so it's ready to copy-paste
+                _save_share_card(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR, MEMORY_REPO / "reports")
             except Exception as e:
                 log.warning(f"weekly synthesis failed: {e}")
 
