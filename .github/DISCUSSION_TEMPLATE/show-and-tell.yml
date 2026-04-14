@@ -1,0 +1,38 @@
+title: "What pattern did Engram find about you?"
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share the most surprising thing Engram surfaced from your data.
+        Real numbers only — no demos, no made-up examples.
+
+        The format from your weekly report works great:
+        > "Apr 13 produced 202 commits — 9.2x my weekly daily average. I had no idea."
+
+  - type: textarea
+    id: pattern
+    attributes:
+      label: The pattern
+      description: What did Engram find that you didn't know about yourself?
+      placeholder: |
+        e.g. "My highest-output days all start with 2h of no-meetings. I had 3 of them last month and didn't notice the pattern."
+    validations:
+      required: true
+
+  - type: textarea
+    id: action
+    attributes:
+      label: What you changed (optional)
+      description: Did the insight change anything about how you work?
+      placeholder: "Now I block 9-11am every day. Week 2 is the test."
+    validations:
+      required: false
+
+  - type: input
+    id: weeks
+    attributes:
+      label: How long have you been running Engram?
+      placeholder: "2 weeks"
+    validations:
+      required: false

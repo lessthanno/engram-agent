@@ -248,6 +248,26 @@ They're complementary. Engram is the behavioral data layer the others are missin
 
 ---
 
+## Community
+
+**What pattern did Engram find about you?**
+
+→ [Share in GitHub Discussions](https://github.com/lessthanno/engram-agent/discussions)
+
+Real data only. No demos. The most surprising insight wins nothing except the respect of people who understand what 9.2x means.
+
+---
+
+**Made with Engram?** Add this to your README:
+
+```markdown
+[![Behavioral data by Engram](https://img.shields.io/badge/behavior--tracked-engram-22c55e?style=flat-square)](https://github.com/lessthanno/engram-agent)
+```
+
+[![Behavioral data by Engram](https://img.shields.io/badge/behavior--tracked-engram-22c55e?style=flat-square)](https://github.com/lessthanno/engram-agent)
+
+---
+
 ## Roadmap
 
 ### Now (v1 — shipped)

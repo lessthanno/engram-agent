@@ -1,0 +1,19 @@
+title: "Weekly patterns thread — [Month Year]"
+labels: ["patterns", "community"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Monthly thread for sharing what Engram found this week.
+        Drop your focus score + one surprising number.
+
+  - type: textarea
+    id: weekly
+    attributes:
+      label: Your week
+      description: Focus score and one data point that stood out.
+      placeholder: |
+        Focus: 7/10
+        Wednesday 3h sprint = 40% of my weekly commits. Rest of the week was noise.
+    validations:
+      required: true
