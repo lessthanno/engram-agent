@@ -47,11 +47,11 @@
 
 **Tweet 4（产品展示）：**
 
-> It's called Mirror.
+> It's called Engram.
 >
 > Watches: git activity, shell history, app usage
-> Synthesizes with Claude every Sunday at 23:45
-> Output: weekly report framed around Atomic Habits principles
+> Synthesizes with Claude every night at 23:45
+> Every Sunday: weekly report framed around Atomic Habits principles
 >
 > Zero deps. 100% local. Free.
 >
@@ -96,10 +96,10 @@
 > 我不知道我有9倍产出的那天。更不知道是什么导致的。
 
 **Tweet 3：**
-> 工具叫 Mirror。
+> 工具叫 Engram。
 >
 > 观察：git、shell历史、app使用时间
-> 每周日用 Claude 合成报告
+> 每晚 23:45 自动收集，每周日用 Claude 合成报告
 > 输出：用《原子习惯》框架解读你的行为
 >
 > 零依赖。100%本地。开源免费。

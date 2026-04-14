@@ -36,7 +36,7 @@ The thing I realized: Clear's third law is "Make it Easy." Manual tracking viola
 
 Removing the logging entirely changed everything. There's no streak to break because there's no action required.
 
-I'm building this into a proper tool (called Mirror). Still early — just a waitlist right now. Happy to share the setup if anyone wants to try the raw version.
+I open-sourced the setup as Engram (github.com/lessthanno/engram-agent). Zero-dependency, 100% local, free. One-line install. Happy to walk anyone through it.
 
 What patterns have you discovered about yourself that surprised you?
 

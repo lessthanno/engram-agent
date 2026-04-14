@@ -92,7 +92,7 @@ James Clear 的第三条法则：**Make it Obvious — 让它显而易见。**
 
 ---
 
-## 这个工具叫 Mirror
+## 这个工具叫 Engram
 
 核心理念：**零手动输入。你正常工作，AI 观察你。每周日晚上，你看到自己的真实面貌。**
 
@@ -124,4 +124,4 @@ python3 ~/engram-agent/mind_sync.py --weekly
 ---
 
 *真实数据，脱敏处理。工具 100% 本地运行。*
-*本文的所有数字来自 Mirror 本周自动生成的报告。*
+*本文的所有数字来自 Engram 本周自动生成的报告。*

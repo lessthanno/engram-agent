@@ -96,7 +96,7 @@ This is the part Clear describes but assumes you have to do yourself. You don't.
 
 ---
 
-## It's called Mirror
+## It's called Engram
 
 Zero manual input. You work normally. AI watches. Every Sunday night, you see who you actually are — not who you think you are.
 
@@ -122,4 +122,4 @@ Make the tracking zero effort. See what happens.
 
 ---
 
-*All numbers in this post are from Mirror's auto-generated report for the week of Apr 7–14, 2026. Real data, anonymized.*
+*All numbers in this post are from Engram's auto-generated report for the week of Apr 7–14, 2026. Real data, anonymized.*
