@@ -303,7 +303,7 @@ Real data only. No demos. The most surprising insight wins nothing except the re
 ### Now (v1 — shipped)
 - [x] 8-source behavioral collector (git, claude, codex, cursor, apps, shell, browser, **claude context**)
 - [x] Claude synthesis with fallback chain (CLI → proxy → API → offline)
-- [x] Daily logs + 6 persistent analysis files
+- [x] Daily logs + 8 persistent analysis files
 - [x] Weekly behavioral report (Atomic Habits framing)
 - [x] **Daily coaching prescription** — tomorrow's one specific behavior change
 - [x] **Personal behavioral model** — output triggers + killers, data-backed, updates weekly
@@ -311,16 +311,19 @@ Real data only. No demos. The most surprising insight wins nothing except the re
 - [x] `@engram` Claude Code agent (coaching, model, tasks, patterns, usage)
 - [x] SessionStart hook injects today's prescription into every new session
 - [x] PreCompact / Stop hooks
-- [x] Interactive installer + verify script
+- [x] Interactive installer + verify + uninstall scripts
 - [x] Skill extension system
+- [x] `--report` flag — fast terminal coaching summary (no API, instant)
+- [x] `--share` flag — shareable weekly behavioral card for Discussions / social
+- [x] Zero-install preview script — `curl ... | bash` shows your week in 30s
 
 ### Next (v2 — in progress)
-- [ ] `--report` flag — single command to print behavioral summary anywhere
 - [ ] Focus score trend graph (30/60/90 days, terminal sparkline)
 - [ ] Calendar integration — scheduled vs actual deep work
 - [ ] macOS menu bar app — prescription visible without opening terminal
 - [ ] Linux support
 - [ ] Cursor and Codex deeper integration
+- [ ] Behavioral diff — "how did this week compare to your best week?"
 
 ### Future (v3)
 - [ ] Team mode — aggregate patterns across a small team (opt-in, local)

@@ -175,17 +175,18 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
     if coaching_file.exists():
         content = coaching_file.read_text()
         # Find latest entry's prescription
-        presc_m = re.search(r"Tomorrow's prescription.*?\n>\s*(.+)", content)
+        presc_m = re.search(r"Tomorrow's prescription.*?>\s*(.+?)(?:\n\n|\Z)", content, re.DOTALL)
         law_m = re.search(r"Atomic Habits:\s*([^\)]+)\)", content)
-        target_m = re.search(r"Measurable target.*?`([^`]+)`.*?`([^`]+)`", content)
-        ft_m = re.search(r"Yesterday's prescription\*\*\s*(✓|✗)", content)
+        target_m = re.search(r"Measurable target.*?`([^`]+)`.*?`([^`]+)`", content, re.DOTALL)
+        ft_m = re.search(r"Yesterday's prescription\*\*[^✓✗]*(✓|✗)", content)
 
         lines.append("▸ TODAY'S PRESCRIPTION")
         if ft_m:
             icon = ft_m.group(1)
             lines.append(f"  Yesterday: {icon}")
         if presc_m:
-            lines.append(f"  → {presc_m.group(1).strip()}")
+            p = presc_m.group(1).strip().replace("\n", " ")
+            lines.append(f"  → {p[:90] + '...' if len(p) > 90 else p}")
         if law_m:
             lines.append(f"  Law: {law_m.group(1).strip()}")
         if target_m:

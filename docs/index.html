@@ -592,18 +592,16 @@ footer a:hover { color: var(--text-2); }
 <section class="install-section" id="install">
   <div class="install-inner">
     <div class="install-text" data-reveal>
-      <h2>Three commands,<br>two minutes</h2>
-      <p>Install once. It runs every night on its own. Zero dependencies — just Python and your Mac.</p>
+      <h2>Preview in 30 seconds.<br>Install in two minutes.</h2>
+      <p>See your own behavioral data before installing anything. Then one command — it runs every night on its own.</p>
       <a href="https://github.com/lessthanno/engram-agent" class="btn-main">Read the docs</a>
     </div>
     <div class="install-code" data-reveal>
       <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
-      <span class="c"># clone</span><br>
-      <span class="cmd">git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent</span><br><br>
-      <span class="c"># enter</span><br>
-      <span class="cmd">cd ~/engram-agent</span><br><br>
-      <span class="c"># install</span><br>
-      <span class="cmd">bash scripts/install.sh</span>
+      <span class="c"># 30-second zero-install preview (no setup needed)</span><br>
+      <span class="cmd">curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/scripts/preview.sh | bash</span><br><br>
+      <span class="c"># full install — 3 questions, 2 min, runs nightly on its own</span><br>
+      <span class="cmd">curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/scripts/quickstart.sh | bash</span>
     </div>
   </div>
 </section>
@@ -663,7 +661,7 @@ setInterval(() => {
 
 // Copy install
 function copyInstall(btn) {
-  navigator.clipboard.writeText('git clone https://github.com/lessthanno/engram-agent.git ~/engram-agent && cd ~/engram-agent && bash scripts/install.sh');
+  navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/scripts/quickstart.sh | bash');
   btn.textContent = 'Copied!';
   setTimeout(() => btn.textContent = 'Copy', 1500);
 }
