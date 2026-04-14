@@ -115,6 +115,25 @@ peak_day    = max(day_commits, key=day_commits.get) if day_commits else None
 peak_count  = day_commits.get(peak_day, 0) if peak_day else 0
 avg = round(total / max(len(active_days), 1), 1)
 
+# 30-day baseline (prior weeks, all days including zeros)
+prior_start = monday - timedelta(days=28)
+prior_days = [(prior_start + timedelta(days=i)).isoformat() for i in range(28)]
+prior_commits: dict = {}
+for day_str in prior_days:
+    day_total = 0
+    for repo in repos:
+        try:
+            cmd = ["git", "-C", repo, "log", "--oneline", "--no-merges",
+                   f"--since={day_str} 00:00", f"--until={day_str} 23:59:59"]
+            if GIT_AUTHOR:
+                cmd += [f"--author={GIT_AUTHOR}"]
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            day_total += len([l for l in r.stdout.strip().splitlines() if l])
+        except Exception:
+            pass
+    prior_commits[day_str] = day_total
+prior_daily_avg = round(sum(prior_commits.values()) / max(len(prior_days), 1), 1)
+
 # ── Output ────────────────────────────────────────────────────────────────────
 print(f"{BOLD}╔══ Your Week ({monday} → {today}) ══╗{RESET}")
 print()
@@ -146,10 +165,16 @@ print(f"{BOLD}Active days:{RESET} {len(active_days)} / {len(week_days)}")
 if zero_days:
     print(f"{BOLD}Zero days:{RESET}   {YELLOW}{len(zero_days)}{RESET} — days under your potential")
 
-if peak_count > 0 and avg > 0:
-    ratio = round(peak_count / avg, 1)
+if peak_count > 0:
     print()
-    print(f"{BOLD}Peak day:{RESET}    {GREEN}{peak_count} commits{RESET} — {BOLD}{ratio}x your active-day average{RESET}")
+    if prior_daily_avg > 0 and peak_count > prior_daily_avg * 1.5:
+        ratio = round(peak_count / prior_daily_avg, 1)
+        print(f"{BOLD}Peak day:{RESET}    {GREEN}{peak_count} commits{RESET} — {BOLD}{ratio}x your 30-day daily average ({prior_daily_avg}/day){RESET}")
+    elif avg > 0 and len(active_days) >= 3:
+        ratio = round(peak_count / avg, 1)
+        print(f"{BOLD}Peak day:{RESET}    {GREEN}{peak_count} commits{RESET} — {BOLD}{ratio}x your active-day average{RESET}")
+    else:
+        print(f"{BOLD}Peak day:{RESET}    {GREEN}{peak_count} commits{RESET}")
     print( "             That's your demonstrated ceiling. How often do you hit it?")
 
 # Repo breakdown
@@ -171,8 +196,10 @@ elif len(repo_totals) >= 5:
     print(f"{YELLOW}Pattern:{RESET} {len(repo_totals)} repos touched — high context-switching.")
     print( "Engram tracks whether single-repo days outperform multi-repo days for you.")
 elif peak_count > 0:
-    ratio = round(peak_count / max(avg, 1), 1)
-    print(f"{YELLOW}Pattern:{RESET} Your peak was {peak_count} commits ({ratio}x average).")
+    base = prior_daily_avg if prior_daily_avg > 0 else avg
+    ratio = round(peak_count / max(base, 1), 1)
+    label = "30-day avg" if prior_daily_avg > 0 else "this-week avg"
+    print(f"{YELLOW}Pattern:{RESET} Your peak was {peak_count} commits ({ratio}x {label}).")
     print( "Engram would track what made that day different — then help you repeat it.")
 
 print()
