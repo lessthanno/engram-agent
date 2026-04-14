@@ -7,12 +7,74 @@ Runs Sunday 23:50 via LaunchAgent (or manually with --weekly).
 import json
 import logging
 import re
+import subprocess
 from datetime import date, timedelta
 from pathlib import Path
 
 import config as cfg
 
 log = logging.getLogger("mind-sync")
+
+
+def _scan_git_week(monday: date) -> list:
+    """Fallback: scan raw git history for the week when daily logs are sparse.
+
+    Returns list of day-summary strings covering Mon–Sun, ready to feed into
+    the prompt the same way daily_logs does.
+    """
+    try:
+        author = cfg.git_author_email()
+    except Exception:
+        author = ""
+
+    # Find all repos (reuse logic from git_activity collector)
+    try:
+        from collectors.git_activity import _find_repos
+        repos = _find_repos()
+    except Exception:
+        return []
+
+    # Per-day commit counts across all repos
+    day_counts: dict[str, list] = {}
+    for i in range(7):
+        day = monday + timedelta(days=i)
+        day_counts[day.isoformat()] = []
+
+    for repo in repos:
+        for day_str in day_counts:
+            try:
+                cmd = [
+                    "git", "log", "--oneline", "--no-merges",
+                    f"--since={day_str} 00:00",
+                    f"--until={day_str} 23:59:59",
+                    "--format=%s",
+                ]
+                if author:
+                    cmd.append(f"--author={author}")
+                result = subprocess.run(
+                    cmd, cwd=repo, capture_output=True, text=True, timeout=5
+                )
+                messages = [l.strip() for l in result.stdout.splitlines() if l.strip()]
+                day_counts[day_str].extend(messages)
+            except Exception:
+                continue
+
+    # Format into daily summaries
+    summaries = []
+    for day_str, messages in sorted(day_counts.items()):
+        if messages:
+            preview = ", ".join(messages[:5])
+            if len(messages) > 5:
+                preview += f" (+{len(messages)-5} more)"
+            summaries.append(
+                f"### {day_str} (git)\n"
+                f"commits: {len(messages)}\n"
+                f"sample: {preview}"
+            )
+        else:
+            summaries.append(f"### {day_str} (git)\ncommits: 0")
+
+    return summaries
 
 
 def synthesize_weekly(daily_dir: Path, analysis_dir: Path, weekly_dir: Path,
@@ -42,9 +104,21 @@ def synthesize_weekly(daily_dir: Path, analysis_dir: Path, weekly_dir: Path,
             # Trim to 600 chars per day to stay within budget
             daily_logs.append(f"### {day.isoformat()}\n{content[:600]}")
 
-    if not daily_logs:
-        log.info("no daily logs found for this week, skipping weekly synthesis")
-        return {}
+    # Fallback: if fewer than 3 daily logs exist, supplement with raw git history
+    # This makes --weekly useful from day 1, not just after a week of daily syncs
+    if len(daily_logs) < 3:
+        git_summaries = _scan_git_week(monday)
+        if git_summaries:
+            # Merge: replace any day we have a full log, fill the rest from git
+            logged_days = {s.split("\n")[0].replace("### ", "").strip() for s in daily_logs}
+            for gs in git_summaries:
+                day = gs.split("\n")[0].replace("### ", "").split(" ")[0].strip()
+                if day not in logged_days:
+                    daily_logs.append(gs)
+            log.info(f"supplemented with git history: {len(daily_logs)} days total")
+        if not daily_logs:
+            log.info("no daily logs and no git history found for this week, skipping")
+            return {}
 
     # Load current analysis files for context
     tasks = _read_file(analysis_dir / "tasks.md", 500)
