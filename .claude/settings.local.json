@@ -1,5 +1,12 @@
 {
   "permissions": {
-    "allow": []
+    "allow": [
+      "Bash(grep -r \"skill_loader\\\\|load_function\\\\|discover\" /Users/xiaozihao/Documents/01_Projects/Work_Code/persion/engram-agent/*.py)",
+      "Bash(chmod +x:*)",
+      "Bash(bash scripts/sync_to_oss.sh)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
+    ]
   }
 }
