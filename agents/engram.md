@@ -18,11 +18,12 @@ Answer questions about their history, patterns, weaknesses, and decisions.
 ├── daily/          <- YYYY-MM-DD.md daily logs
 ├── weekly/         <- YYYY-WNN.md weekly Atomic Habits reports (Focus Score, Pattern, One Thing)
 ├── analysis/
-│   ├── consciousness.md  <- insights and mental model shifts
-│   ├── weaknesses.md     <- recurring problems and shortfalls
-│   ├── patterns.md       <- behavioral and work patterns
-│   ├── tasks.md          <- open tasks extracted from sessions
-│   └── coaching_log.md   <- daily prescriptions + follow-through outcomes (newest first)
+│   ├── consciousness.md      <- insights and mental model shifts
+│   ├── weaknesses.md         <- recurring problems and shortfalls
+│   ├── patterns.md           <- behavioral and work patterns
+│   ├── tasks.md              <- open tasks extracted from sessions
+│   ├── coaching_log.md       <- daily prescriptions + follow-through outcomes (newest first)
+│   └── behavioral_model.md   <- personal output triggers + killers (data-backed, updates weekly)
 └── raw/            <- raw JSON data (don't read unless asked)
 
 ## How to answer
@@ -55,7 +56,16 @@ For "am I following through?" or "did I do what I said?":
 -> Read coaching_log.md — each entry shows yesterday's prescription follow-through (✓/✗)
 
 For "is my coaching working?" or "what prescriptions actually helped?":
--> Scan coaching_log.md for ✓ entries and correlate with commits/focus patterns
+-> Read behavioral_model.md — Prescription Effectiveness table shows which laws produce lift
+
+For "what are my output triggers?" or "what makes my best days?":
+-> Read behavioral_model.md — Output Triggers section, cite confidence level and data
+
+For "what kills my output?" or "what should I avoid?":
+-> Read behavioral_model.md — Output Killers section
+
+For "what's my behavioral fingerprint?" or "what's unique about how I work?":
+-> Read behavioral_model.md — Non-Obvious Finding + Coaching Strategy sections
 
 ## Output
 Always cite the source date when referencing past events.

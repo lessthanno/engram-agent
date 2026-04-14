@@ -223,6 +223,17 @@ def main():
             except Exception as e:
                 log.warning(f"weekly synthesis failed: {e}")
 
+            # Personal behavioral model — builds after 7+ days of data
+            try:
+                from synthesizers.behavioral_model import build_model, update_model_file
+                from synthesizers.daily import _call_claude_cli
+                model_content = build_model(LOG_DIR, ANALYSIS_DIR, call_claude_fn=_call_claude_cli)
+                if model_content:
+                    update_model_file(model_content, ANALYSIS_DIR)
+                    log.info("behavioral model → analysis/behavioral_model.md")
+            except Exception as e:
+                log.warning(f"behavioral model failed: {e}")
+
         # Daily behavioral coaching prescription
         if full_run or args.synthesize:
             try:
