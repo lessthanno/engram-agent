@@ -17,9 +17,7 @@
 </div>
 
 <p align="center">
-  <a href="https://lessthanno.github.io/engram-agent/">
-    <img src="docs/demo.svg" alt="Engram demo" width="720">
-  </a>
+  <img src="docs/demo-static.svg" alt="Engram: weekly pattern analysis" width="720">
 </p>
 
 ---
