@@ -107,6 +107,11 @@ COLLECTOR_DETAIL=$(echo "$COLLECTOR_RESULT" | cut -d'|' -f2)
 if [ -n "$COLLECTOR_COUNT" ] && [ "$COLLECTOR_COUNT" -gt 0 ]; then
     ok "Collectors: $COLLECTOR_COUNT active"
     echo "    $COLLECTOR_DETAIL"
+    # Suggest ActivityWatch if app tracking is zero
+    if echo "$COLLECTOR_DETAIL" | grep -q "apps(0 tracked)"; then
+        echo -e "    ${YELLOW}⚠${NC} App tracking inactive — install ActivityWatch for focus/app data:"
+        echo    "      https://activitywatch.net  (free, open source, runs in background)"
+    fi
 else
     err "No collectors working"
     ERRORS=$((ERRORS+1))
