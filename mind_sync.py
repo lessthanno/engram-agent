@@ -223,6 +223,18 @@ def main():
             except Exception as e:
                 log.warning(f"weekly synthesis failed: {e}")
 
+        # Daily behavioral coaching prescription
+        if full_run or args.synthesize:
+            try:
+                from synthesizers.coach import synthesize as coach_syn, update_coaching_file
+                from synthesizers.daily import _call_claude_cli
+                coach_entry = coach_syn(raw, ANALYSIS_DIR, call_claude_fn=_call_claude_cli)
+                if coach_entry:
+                    update_coaching_file(coach_entry, ANALYSIS_DIR)
+                    log.info("coaching prescription → analysis/coaching_log.md")
+            except Exception as e:
+                log.warning(f"coach failed: {e}")
+
         # Bridge insights to Claude auto-memory
         if full_run or args.synthesize:
             try:

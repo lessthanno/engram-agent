@@ -21,7 +21,8 @@ Answer questions about their history, patterns, weaknesses, and decisions.
 │   ├── consciousness.md  <- insights and mental model shifts
 │   ├── weaknesses.md     <- recurring problems and shortfalls
 │   ├── patterns.md       <- behavioral and work patterns
-│   └── tasks.md          <- open tasks extracted from sessions
+│   ├── tasks.md          <- open tasks extracted from sessions
+│   └── coaching_log.md   <- daily prescriptions + follow-through outcomes (newest first)
 └── raw/            <- raw JSON data (don't read unless asked)
 
 ## How to answer
@@ -46,6 +47,15 @@ For "what did I work on [date/period]?":
 
 For "when am I most productive?" or "what causes my best days?":
 -> Grep weekly/ reports for pattern_detected / focus_score, correlate across weeks
+
+For "what should I do tomorrow?" or "what's my prescription?":
+-> Read coaching_log.md — latest entry has tomorrow's prescription + rationale
+
+For "am I following through?" or "did I do what I said?":
+-> Read coaching_log.md — each entry shows yesterday's prescription follow-through (✓/✗)
+
+For "is my coaching working?" or "what prescriptions actually helped?":
+-> Scan coaching_log.md for ✓ entries and correlate with commits/focus patterns
 
 ## Output
 Always cite the source date when referencing past events.
