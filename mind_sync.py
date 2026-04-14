@@ -208,7 +208,20 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
                 # Strip trailing metadata like (project) [priority: H]
                 clean = re.sub(r"\s*\([^)]+\)\s*\[priority:[^\]]+\].*$", "", clean)
                 clean = re.sub(r"\s*\[priority:[^\]]+\].*$", "", clean)
-                lines.append(f"  · {clean[:80]}")
+                # Use char count but be generous with CJK (each ~2 display cols)
+                display_len = sum(2 if ord(c) > 0x2E7F else 1 for c in clean)
+                if display_len > 90:
+                    # Truncate at roughly 90 display cols
+                    out, cols = "", 0
+                    for c in clean:
+                        w = 2 if ord(c) > 0x2E7F else 1
+                        if cols + w > 87:
+                            out += "..."
+                            break
+                        out += c
+                        cols += w
+                    clean = out
+                lines.append(f"  · {clean}")
             lines.append("")
 
     # 3. Latest weekly focus score
@@ -225,9 +238,11 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
             if score_m:
                 lines.append(f"  Focus: {score_m.group(1)}")
             if pattern_m:
-                lines.append(f"  Pattern: {pattern_m.group(1).strip()[:72]}")
+                pat = pattern_m.group(1).strip()
+                lines.append(f"  Pattern: {pat[:90] + '...' if len(pat) > 90 else pat}")
             if one_m:
-                lines.append(f"  One thing: {one_m.group(1).strip()[:72]}")
+                ot = one_m.group(1).strip()
+                lines.append(f"  One thing: {ot[:90] + '...' if len(ot) > 90 else ot}")
             lines.append("")
 
     # 3b. 7-day commit sparkline
