@@ -129,14 +129,26 @@ print(k[:8] + '...' if k else '')
     fi
 fi
 
-# 5. LaunchAgent
-PLIST="$HOME/Library/LaunchAgents/com.engram-agent.plist"
-if [ -f "$PLIST" ]; then
-    if launchctl list | grep -q "com.engram-agent"; then
-        ok "LaunchAgent: loaded (runs at 23:45)"
+# 5. LaunchAgent (accepts any engram/mind-sync variant label)
+# Prefer engram-agent label, then any *-mind-sync with exit code 0, then any loaded
+AGENT_LOADED=$(launchctl list | grep -E "com\.engram-agent$" | awk '{print $3}' | head -1)
+if [ -z "$AGENT_LOADED" ]; then
+    AGENT_LOADED=$(launchctl list | grep -E "mind-sync" | awk '$2=="0" || $2=="-" {print $3}' | head -1)
+fi
+if [ -z "$AGENT_LOADED" ]; then
+    AGENT_LOADED=$(launchctl list | grep -E "mind-sync" | awk '{print $3}' | head -1)
+fi
+AGENT_PLIST=$(ls "$HOME/Library/LaunchAgents/com.engram-agent.plist" "$HOME/Library/LaunchAgents/com.zihao.mind-sync.plist" "$HOME/Library/LaunchAgents/com.mind-sync.plist" 2>/dev/null | head -1)
+
+if [ -n "$AGENT_LOADED" ]; then
+    AGENT_STATUS=$(launchctl list | grep "$AGENT_LOADED" | awk '{print $2}')
+    if [ "$AGENT_STATUS" = "0" ] || [ "$AGENT_STATUS" = "-" ]; then
+        ok "LaunchAgent: $AGENT_LOADED (runs at 23:45)"
     else
-        warn "LaunchAgent: plist exists but not loaded. Run: launchctl load $PLIST"
+        warn "LaunchAgent: $AGENT_LOADED loaded but last exit code $AGENT_STATUS — check /tmp/*.log"
     fi
+elif [ -n "$AGENT_PLIST" ]; then
+    warn "LaunchAgent: plist found but not loaded. Run: launchctl load $AGENT_PLIST"
 else
     err "LaunchAgent not installed. Run: bash scripts/install.sh"
     ERRORS=$((ERRORS+1))
