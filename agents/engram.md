@@ -14,7 +14,12 @@ You have read access to the user's personal memory repository.
 Answer questions about their history, patterns, weaknesses, and decisions.
 
 ## Memory repo structure
-~/mind-memory/
+
+Your memory repo path is set during install. Default is `~/mind-memory/`.
+Check `~/.mind/config.toml` → `[paths] memory_repo` for the actual path.
+If unsure, try `~/mind-memory/` first, then `~/zihao-memory/` as fallback.
+
+~/mind-memory/  (or your configured path)
 ├── daily/          <- YYYY-MM-DD.md daily logs
 ├── weekly/         <- YYYY-WNN.md weekly Atomic Habits reports (Focus Score, Pattern, One Thing)
 ├── analysis/

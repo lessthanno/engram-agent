@@ -41,6 +41,22 @@ today = date.today()
 monday = today - timedelta(days=today.weekday())
 week_days = [monday + timedelta(days=i) for i in range(today.weekday() + 1)]
 
+# ── Git author (this machine's commits only) ─────────────────────────────────
+def get_git_author():
+    try:
+        r = subprocess.run(["git", "config", "--global", "user.email"],
+                           capture_output=True, text=True, timeout=3)
+        email = r.stdout.strip()
+        if email:
+            return email
+        r2 = subprocess.run(["git", "config", "--global", "user.name"],
+                            capture_output=True, text=True, timeout=3)
+        return r2.stdout.strip() or None
+    except Exception:
+        return None
+
+GIT_AUTHOR = get_git_author()
+
 # ── Find repos ────────────────────────────────────────────────────────────────
 search_roots = [
     Path.home() / "Documents",
@@ -77,12 +93,12 @@ for repo in repos:
     for day in week_days:
         day_str = day.isoformat()
         try:
-            result = subprocess.run(
-                ["git", "-C", repo, "log", "--oneline", "--no-merges",
-                 f"--since={day_str} 00:00",
-                 f"--until={day_str} 23:59:59"],
-                capture_output=True, text=True, timeout=4
-            )
+            cmd = ["git", "-C", repo, "log", "--oneline", "--no-merges",
+                   f"--since={day_str} 00:00",
+                   f"--until={day_str} 23:59:59"]
+            if GIT_AUTHOR:
+                cmd += [f"--author={GIT_AUTHOR}"]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=4)
             count = len([l for l in result.stdout.splitlines() if l.strip()])
             day_commits[day_str] += count
             repo_count += count

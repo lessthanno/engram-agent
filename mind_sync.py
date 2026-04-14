@@ -269,6 +269,105 @@ def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None
     print("\n".join(lines))
 
 
+def _print_share_card(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None:
+    """Generate a shareable weekly summary card (plain text, no ANSI)."""
+    import re
+    from datetime import date, timedelta
+
+    today = date.today()
+    year, week_num, _ = today.isocalendar()
+
+    # Find latest weekly report
+    weekly_file = weekly_dir / f"{year}-W{week_num:02d}.md"
+    if not weekly_file.exists():
+        # Try previous week
+        prev = today - timedelta(days=7)
+        y2, w2, _ = prev.isocalendar()
+        weekly_file = weekly_dir / f"{y2}-W{w2:02d}.md"
+
+    if not weekly_file.exists():
+        print("No weekly report yet. Run: python3 mind_sync.py --weekly")
+        return
+
+    wc = weekly_file.read_text()
+
+    # Extract fields from frontmatter + body
+    fs_m = re.search(r"focus_score:\s*(\d+)/10", wc)
+    focus = fs_m.group(1) if fs_m else "?"
+
+    # Total commits: "241 commits" in Focus Score line
+    commits_m = re.search(r"(\d{3,})\s+commits", wc)
+    total_commits = commits_m.group(1) if commits_m else "?"
+
+    # Active days from frontmatter (days that had any data)
+    days_m = re.search(r"days_with_data:\s*(\d+)", wc)
+    active_days = days_m.group(1) if days_m else "7"
+
+    # Peak day commit count — look for "N commits" preceded by a month/day name
+    peak_m = re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d+\s+produced\s+(\d+)\s+commits", wc)
+    peak_line = ""
+    if peak_m:
+        peak_month_day = peak_m.group(0).split(" produced")[0].strip()
+        peak_count = peak_m.group(2)
+        # Look for multiplier near this mention
+        mult_m = re.search(r"(\d+)[–-](\d+)x\s+spike|(\d+\.?\d*)x\s+(?:daily|weekly|the)", wc)
+        if mult_m:
+            mult = mult_m.group(3) or f"{mult_m.group(1)}–{mult_m.group(2)}"
+            peak_line = f"Peak: {peak_month_day} = {peak_count} commits ({mult}x avg)"
+        else:
+            peak_line = f"Peak: {peak_month_day} = {peak_count} commits"
+
+    # Pattern: first sentence of Pattern Detected section
+    pattern_m = re.search(r"## Pattern Detected\s*\n+([^\n]+)", wc)
+    pattern = pattern_m.group(1).strip() if pattern_m else ""
+    # Truncate at sentence boundary if too long
+    if len(pattern) > 120:
+        cut = pattern.rfind(". ", 0, 120)
+        pattern = pattern[:cut + 1] if cut > 40 else pattern[:117] + "..."
+
+    # One Thing section
+    one_thing_m = re.search(r"## One Thing\s*\n+([^\n]+)", wc)
+    one_thing = one_thing_m.group(1).strip() if one_thing_m else ""
+    if len(one_thing) > 110:
+        cut = one_thing.rfind(". ", 0, 110)
+        one_thing = one_thing[:cut + 1] if cut > 30 else one_thing[:107] + "..."
+
+    # Coaching prescription from coaching_log.md
+    coaching_file = analysis_dir / "coaching_log.md"
+    prescription = ""
+    if coaching_file.exists():
+        cc = coaching_file.read_text()
+        presc_m = re.search(r"Tomorrow's prescription.*?>\s*(.+?)(?:\n\n|\Z)", cc, re.DOTALL)
+        if presc_m:
+            p = presc_m.group(1).strip().replace("\n", " ")
+            prescription = p if len(p) <= 120 else p[:117] + "..."
+
+    # Build share card
+    week_label = f"{year}-W{week_num:02d}"
+    lines = [
+        f"Week {week_label} · engram behavioral report",
+        f"Focus score: {focus}/10 · {total_commits} commits · {active_days}/7 days active",
+    ]
+    if peak_line:
+        lines.append(peak_line)
+    if pattern:
+        lines.append(f"\nPattern: {pattern}")
+    if one_thing:
+        lines.append(f"\nOne thing: {one_thing}")
+    if prescription:
+        lines.append(f"\nCoach says: {prescription}")
+    lines += [
+        "",
+        "Engram watches your work behavior automatically. Zero logging.",
+        "Weekly Atomic Habits report. Runs while you sleep.",
+        "",
+        "→ github.com/lessthanno/engram-agent",
+        "  (30s zero-install preview: curl -fsSL .../preview.sh | bash)",
+    ]
+
+    print("\n".join(lines))
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -280,6 +379,7 @@ def main():
     parser.add_argument("--weekly", action="store_true", help="Generate weekly synthesis")
     parser.add_argument("--model", action="store_true", help="Rebuild personal behavioral model")
     parser.add_argument("--report", action="store_true", help="Print today's coaching summary (fast, no API)")
+    parser.add_argument("--share", action="store_true", help="Print shareable weekly card (copy-paste for Discussions/Twitter)")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--force", action="store_true", help="Run even if today already synced")
     args = parser.parse_args()
@@ -292,6 +392,11 @@ def main():
     # --report: fast read-only summary, exits immediately
     if args.report:
         _print_report(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR)
+        return
+
+    # --share: shareable weekly card, exits immediately
+    if args.share:
+        _print_share_card(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR)
         return
 
     full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.model, args.push])
