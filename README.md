@@ -194,6 +194,36 @@ curl -fsSL https://raw.githubusercontent.com/lessthanno/engram-agent/main/script
 
 3 questions. 2 minutes. Never touch it again.
 
+After a week, run this any morning:
+
+```
+$ python3 ~/engram-agent/mind_sync.py --report
+
+╔══ engram · 2026-04-14 ══╗
+
+▸ TODAY'S PRESCRIPTION
+  Yesterday: ✓
+  → Protect the first 90 minutes. No meetings, no Slack until 10:30am.
+  Law: Make it Satisfying
+  Target: commits >=127
+
+▸ OPEN TASKS
+  · FujiPay Stripe webhook (project: fujipay) [priority: H]
+  · ZKLM MVP scope definition [priority: M]
+
+▸ WEEK 2026-W16
+  Focus: 4/10
+  Pattern: Apr 13 = 202 commits, 9.2x daily average. 5 zero days after.
+  One thing: Figure out what triggered Apr 13. Protect that condition.
+
+▸ YOUR MODEL
+  + Wednesday is your highest-output day (avg 42 commits)
+  - Days with meetings: 38% of your normal output
+
+────────────────────────────────────────────────
+  @engram in Claude Code for deeper analysis
+```
+
 <details>
 <summary>Manual install</summary>
 

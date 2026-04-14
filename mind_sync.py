@@ -7,6 +7,9 @@ Usage:
   python mind_sync.py              # full daily sync
   python mind_sync.py --collect    # collect only
   python mind_sync.py --synthesize # synthesize only (uses last collected data)
+  python mind_sync.py --weekly     # generate weekly report (any day)
+  python mind_sync.py --model      # rebuild personal behavioral model
+  python mind_sync.py --report     # print today's coaching summary (fast, no API)
   python mind_sync.py --push       # git push only
 """
 
@@ -154,6 +157,110 @@ def git_push():
         else:
             log.info(f"git {' '.join(cmd[2:])} OK")
 
+# ── Report (--report flag) ────────────────────────────────────────────────────
+
+def _print_report(analysis_dir: Path, weekly_dir: Path, daily_dir: Path) -> None:
+    """Fast read-only terminal report. No API call. Pure file reads."""
+    import re
+    from datetime import date, timedelta
+
+    today = date.today().isoformat()
+    lines = []
+    SEP = "─" * 56
+
+    lines.append(f"\n╔══ engram · {today} ══╗\n")
+
+    # 1. Today's prescription
+    coaching_file = analysis_dir / "coaching_log.md"
+    if coaching_file.exists():
+        content = coaching_file.read_text()
+        # Find latest entry's prescription
+        presc_m = re.search(r"Tomorrow's prescription.*?\n>\s*(.+)", content)
+        law_m = re.search(r"Atomic Habits:\s*([^\)]+)\)", content)
+        target_m = re.search(r"Measurable target.*?`([^`]+)`.*?`([^`]+)`", content)
+        ft_m = re.search(r"Yesterday's prescription\*\*\s*(✓|✗)", content)
+
+        lines.append("▸ TODAY'S PRESCRIPTION")
+        if ft_m:
+            icon = ft_m.group(1)
+            lines.append(f"  Yesterday: {icon}")
+        if presc_m:
+            lines.append(f"  → {presc_m.group(1).strip()}")
+        if law_m:
+            lines.append(f"  Law: {law_m.group(1).strip()}")
+        if target_m:
+            lines.append(f"  Target: {target_m.group(1)} {target_m.group(2)}")
+        lines.append("")
+
+    # 2. Open tasks (unchecked only)
+    tasks_file = analysis_dir / "tasks.md"
+    if tasks_file.exists():
+        tasks_content = tasks_file.read_text()
+        open_tasks = [
+            l.strip() for l in tasks_content.splitlines()
+            if re.match(r"[-*]?\s*\[ \]", l) and l.strip()
+        ][:5]
+        if open_tasks:
+            lines.append("▸ OPEN TASKS")
+            for t in open_tasks:
+                clean = re.sub(r"[-*]?\s*\[ \]\s*", "", t)
+                lines.append(f"  · {clean[:72]}")
+            lines.append("")
+
+    # 3. Latest weekly focus score
+    if weekly_dir.exists():
+        weekly_files = sorted(weekly_dir.glob("*.md"), reverse=True)
+        if weekly_files:
+            wf = weekly_files[0]
+            wc = wf.read_text()
+            score_m = re.search(r"\*\*Focus Score:\*\*\s*([^\s—]+)", wc)
+            pattern_m = re.search(r"## Pattern Detected\s*\n+(.+?)(?:\n|$)", wc)
+            one_m = re.search(r"## One Thing\s*\n+(.+?)(?:\n|$)", wc)
+            week_label = wf.stem
+            lines.append(f"▸ WEEK {week_label}")
+            if score_m:
+                lines.append(f"  Focus: {score_m.group(1)}")
+            if pattern_m:
+                lines.append(f"  Pattern: {pattern_m.group(1).strip()[:72]}")
+            if one_m:
+                lines.append(f"  One thing: {one_m.group(1).strip()[:72]}")
+            lines.append("")
+
+    # 4. Behavioral model — top trigger + killer
+    model_file = analysis_dir / "behavioral_model.md"
+    if model_file.exists():
+        mc = model_file.read_text()
+        trigger_m = re.search(r"## Output Triggers\s*\n+\*\*([^*]+)\*\*", mc)
+        killer_m = re.search(r"## Output Killers\s*\n+\*\*([^*]+)\*\*", mc)
+        if trigger_m or killer_m:
+            lines.append("▸ YOUR MODEL")
+            if trigger_m:
+                lines.append(f"  + {trigger_m.group(1).strip()[:72]}")
+            if killer_m:
+                lines.append(f"  - {killer_m.group(1).strip()[:72]}")
+            lines.append("")
+
+    # 5. Claude usage score (today)
+    usage_file = analysis_dir / "claude_usage.md"
+    if usage_file.exists():
+        uc = usage_file.read_text()
+        # Find today's entry
+        today_usage = re.search(
+            rf"## {today}.*?\n.*?Score:\s*(\d+)/100.*?(\d+) sessions",
+            uc, re.DOTALL
+        )
+        if today_usage:
+            lines.append("▸ CLAUDE USAGE TODAY")
+            lines.append(f"  Quality: {today_usage.group(1)}/100 · {today_usage.group(2)} sessions")
+            lines.append("")
+
+    lines.append(SEP)
+    lines.append("  @engram in Claude Code for deeper analysis")
+    lines.append("")
+
+    print("\n".join(lines))
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -164,6 +271,7 @@ def main():
     parser.add_argument("--lint", action="store_true", help="Wiki health check")
     parser.add_argument("--weekly", action="store_true", help="Generate weekly synthesis")
     parser.add_argument("--model", action="store_true", help="Rebuild personal behavioral model")
+    parser.add_argument("--report", action="store_true", help="Print today's coaching summary (fast, no API)")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--force", action="store_true", help="Run even if today already synced")
     args = parser.parse_args()
@@ -172,6 +280,11 @@ def main():
 
     # Validate config and warn about issues
     cfg.validate_or_warn()
+
+    # --report: fast read-only summary, exits immediately
+    if args.report:
+        _print_report(ANALYSIS_DIR, WEEKLY_DIR, LOG_DIR)
+        return
 
     full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.model, args.push])
 
