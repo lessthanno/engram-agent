@@ -66,10 +66,12 @@ def collect_all():
     from collectors.system_ops import collect as c5
     from collectors.codex_sessions import collect as c6
     from collectors.cursor_sessions import collect as c7
+    from collectors.claude_context import collect as c8
 
     raw = {"date": TODAY}
     collectors = [
         ("claude_sessions", lambda: c1(CLAUDE_PROJECTS, TODAY)),
+        ("claude_context", lambda: c8(TODAY)),
         ("codex_sessions", lambda: c6(TODAY)),
         ("cursor_sessions", lambda: c7(TODAY)),
         ("git_activity", lambda: c2(TODAY)),
@@ -161,6 +163,7 @@ def main():
     parser.add_argument("--wiki", action="store_true", help="Wiki ingest only")
     parser.add_argument("--lint", action="store_true", help="Wiki health check")
     parser.add_argument("--weekly", action="store_true", help="Generate weekly synthesis")
+    parser.add_argument("--model", action="store_true", help="Rebuild personal behavioral model")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--force", action="store_true", help="Run even if today already synced")
     args = parser.parse_args()
@@ -170,7 +173,7 @@ def main():
     # Validate config and warn about issues
     cfg.validate_or_warn()
 
-    full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.push])
+    full_run = not any([args.collect, args.synthesize, args.wiki, args.lint, args.weekly, args.model, args.push])
 
     # Skip if already ran today (RunAtLoad guard) unless --force
     daily_log = LOG_DIR / f"{TODAY}.md"
@@ -223,7 +226,8 @@ def main():
             except Exception as e:
                 log.warning(f"weekly synthesis failed: {e}")
 
-            # Personal behavioral model — builds after 7+ days of data
+        # Personal behavioral model — --model flag or Sunday or --weekly
+        if args.model or args.weekly or (full_run and date.today().weekday() == 6):
             try:
                 from synthesizers.behavioral_model import build_model, update_model_file
                 from synthesizers.daily import _call_claude_cli
@@ -233,6 +237,17 @@ def main():
                     log.info("behavioral model → analysis/behavioral_model.md")
             except Exception as e:
                 log.warning(f"behavioral model failed: {e}")
+
+        # Claude usage quality coach (heuristic, no API needed)
+        if full_run or args.synthesize:
+            try:
+                from synthesizers.claude_coach import synthesize as usage_coach, update_usage_file
+                usage_section = usage_coach(raw, ANALYSIS_DIR)
+                if usage_section:
+                    update_usage_file(usage_section, ANALYSIS_DIR)
+                    log.info("claude usage coach → analysis/claude_usage.md")
+            except Exception as e:
+                log.warning(f"claude usage coach failed: {e}")
 
         # Daily behavioral coaching prescription
         if full_run or args.synthesize:

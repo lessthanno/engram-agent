@@ -23,7 +23,8 @@ Answer questions about their history, patterns, weaknesses, and decisions.
 │   ├── patterns.md           <- behavioral and work patterns
 │   ├── tasks.md              <- open tasks extracted from sessions
 │   ├── coaching_log.md       <- daily prescriptions + follow-through outcomes (newest first)
-│   └── behavioral_model.md   <- personal output triggers + killers (data-backed, updates weekly)
+│   ├── behavioral_model.md   <- personal output triggers + killers (data-backed, updates weekly)
+│   └── claude_usage.md       <- daily Claude Code usage quality score + anti-patterns detected
 └── raw/            <- raw JSON data (don't read unless asked)
 
 ## How to answer
@@ -66,6 +67,9 @@ For "what kills my output?" or "what should I avoid?":
 
 For "what's my behavioral fingerprint?" or "what's unique about how I work?":
 -> Read behavioral_model.md — Non-Obvious Finding + Coaching Strategy sections
+
+For "how am I using Claude Code?" or "am I burning context?" or "Claude usage quality?":
+-> Read claude_usage.md — daily score, overflow sessions, shallow vs deep session ratio
 
 ## Output
 Always cite the source date when referencing past events.

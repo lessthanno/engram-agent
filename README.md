@@ -271,27 +271,31 @@ Real data only. No demos. The most surprising insight wins nothing except the re
 ## Roadmap
 
 ### Now (v1 — shipped)
-- [x] 7-source behavioral collector
+- [x] 8-source behavioral collector (git, claude, codex, cursor, apps, shell, browser, **claude context**)
 - [x] Claude synthesis with fallback chain (CLI → proxy → API → offline)
-- [x] Daily logs + 4 persistent analysis files
+- [x] Daily logs + 6 persistent analysis files
 - [x] Weekly behavioral report (Atomic Habits framing)
-- [x] `@engram` Claude Code agent
-- [x] SessionStart / PreCompact / Stop hooks
+- [x] **Daily coaching prescription** — tomorrow's one specific behavior change
+- [x] **Personal behavioral model** — output triggers + killers, data-backed, updates weekly
+- [x] **Claude usage quality coach** — context%, overflow detection, session depth scoring
+- [x] `@engram` Claude Code agent (coaching, model, tasks, patterns, usage)
+- [x] SessionStart hook injects today's prescription into every new session
+- [x] PreCompact / Stop hooks
 - [x] Interactive installer + verify script
 - [x] Skill extension system
 
 ### Next (v2 — in progress)
-- [ ] macOS menu bar app — visual weekly report, no terminal needed
-- [ ] iOS companion — view reports on mobile
-- [ ] Focus score trend graph (30/60/90 days)
+- [ ] `--report` flag — single command to print behavioral summary anywhere
+- [ ] Focus score trend graph (30/60/90 days, terminal sparkline)
 - [ ] Calendar integration — scheduled vs actual deep work
-- [ ] Cursor and Codex deeper integration
+- [ ] macOS menu bar app — prescription visible without opening terminal
 - [ ] Linux support
+- [ ] Cursor and Codex deeper integration
 
 ### Future (v3)
 - [ ] Team mode — aggregate patterns across a small team (opt-in, local)
 - [ ] Behavioral diff — "how did this week compare to your best week?"
-- [ ] Custom habit definitions — "tell me if I'm doing X consistently"
+- [ ] Custom trigger definitions — "tell me if I'm doing X consistently"
 - [ ] Export to Obsidian / Notion / Bear
 
 ---
